@@ -3,309 +3,1371 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Compound Interest Calculator</title>
+  <title>BucketsWealth — Financial Dashboard</title>
 
-  <!-- Chart.js from CDN -->
+  <!-- ==================== EXTERNAL DEPENDENCIES ==================== -->
+  <!-- Inter font — clean, modern typeface designed for screens -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Chart.js — renders the compound interest growth chart -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
   <!-- ==================== STYLES ==================== -->
   <style>
-    /* -- Color palette & base tokens -- */
+    /*
+     * ==========================================================
+     *  DESIGN TOKENS
+     *  All colors, radii, and shadows defined as CSS custom
+     *  properties so they're easy to tweak in one place.
+     * ==========================================================
+     */
     :root {
-      --clr-bg: #f0f4f8;
-      --clr-card: #ffffff;
-      --clr-primary: #1a73e8;
-      --clr-primary-light: #e8f0fe;
-      --clr-accent: #0d9488;
-      --clr-text: #1e293b;
-      --clr-text-muted: #64748b;
-      --clr-border: #e2e8f0;
-      --clr-nominal: #1a73e8;
-      --clr-inflation: #e85d1a;
-      --clr-contributions: #0d9488;
-      --radius: 12px;
-      --shadow: 0 1px 3px rgba(0,0,0,.08), 0 4px 12px rgba(0,0,0,.04);
+      /* Backgrounds — layered dark surfaces (figure/ground principle) */
+      --bg:            #0A0A0F;   /* page background — deepest layer */
+      --surface:       #12121A;   /* card background — middle layer */
+      --elevated:      #1A1A28;   /* raised elements inside cards */
+      --border:        #2A2A40;   /* subtle borders for card edges */
+      --border-bright: #3A3A58;   /* brighter border on hover */
+
+      /* Accent palette */
+      --primary:       #6C63FF;   /* purple — main interactive color */
+      --primary-dim:   rgba(108, 99, 255, .15); /* subtle purple tint */
+      --primary-glow:  rgba(108, 99, 255, .35); /* focus ring glow */
+      --success:       #00D4AA;   /* teal green — positive/hold */
+      --success-dim:   rgba(0, 212, 170, .12);
+      --warning:       #F5A623;   /* amber — caution/partial */
+      --warning-dim:   rgba(245, 166, 35, .12);
+      --danger:        #FF4757;   /* red — sell/alert */
+      --danger-dim:    rgba(255, 71, 87, .12);
+
+      /* Text hierarchy */
+      --text:          #EEEEF5;   /* primary readable text */
+      --text-secondary:#8888AA;   /* labels, helper text */
+      --text-muted:    #4A4A6A;   /* least prominent text */
+
+      /* Shared design values */
+      --radius:        12px;
+      --radius-sm:     8px;
+      --shadow:        0 2px 8px rgba(0,0,0,.3), 0 8px 24px rgba(0,0,0,.2);
     }
 
-    /* -- Reset & base -- */
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    /*
+     * ==========================================================
+     *  RESET & BASE TYPOGRAPHY
+     *  Using Inter with tabular-nums for aligned number columns.
+     * ==========================================================
+     */
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
 
     body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      background: var(--clr-bg);
-      color: var(--clr-text);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      font-weight: 400;
+      background: var(--bg);
+      color: var(--text);
       line-height: 1.6;
-      padding: 2rem 1rem;
+      /* Prevent horizontal scroll from animations */
+      overflow-x: hidden;
     }
 
-    h1 {
-      text-align: center;
-      font-size: 1.75rem;
-      margin-bottom: .25rem;
+    /* Tabular nums for any element showing financial data */
+    .num {
+      font-variant-numeric: tabular-nums;
     }
 
-    .subtitle {
-      text-align: center;
-      color: var(--clr-text-muted);
-      margin-bottom: 2rem;
-      font-size: .95rem;
+    /*
+     * ==========================================================
+     *  HEADER
+     *  Full-width dark bar with logo + pill toggle to switch
+     *  between the two tools. Stays at the top of the page.
+     * ==========================================================
+     */
+    .site-header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 1rem 1.5rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1rem;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      /* Slight blur for content scrolling behind */
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
     }
 
-    /* -- Layout container -- */
-    .container {
-      max-width: 900px;
+    .header-inner {
+      width: 100%;
+      max-width: 720px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    /* Logo — simple text mark with a purple accent dot */
+    .logo {
+      font-size: 1.2rem;
+      font-weight: 800;
+      letter-spacing: -.02em;
+      color: var(--text);
+    }
+
+    .logo span {
+      color: var(--primary);
+    }
+
+    /*
+     * Pill toggle — two options inside a rounded container.
+     * The "active" pill gets a filled purple background.
+     * Gestalt "similarity": both pills share identical styling
+     * so users perceive them as related options.
+     */
+    .pill-toggle {
+      display: flex;
+      background: var(--elevated);
+      border-radius: 50px;
+      padding: 3px;
+      border: 1px solid var(--border);
+    }
+
+    .pill-toggle button {
+      border: none;
+      background: transparent;
+      color: var(--text-secondary);
+      font-family: inherit;
+      font-size: .82rem;
+      font-weight: 600;
+      padding: .45rem 1rem;
+      border-radius: 50px;
+      cursor: pointer;
+      transition: all .25s ease;
+      white-space: nowrap;
+    }
+
+    .pill-toggle button:hover {
+      color: var(--text);
+    }
+
+    .pill-toggle button.active {
+      background: var(--primary);
+      color: #fff;
+      box-shadow: 0 2px 8px rgba(108, 99, 255, .4);
+    }
+
+    /*
+     * ==========================================================
+     *  MAIN CONTENT AREA
+     *  Centered column with generous whitespace (32px between
+     *  sections as specified).
+     * ==========================================================
+     */
+    .main-content {
+      max-width: 720px;
       margin: 0 auto;
+      padding: 2rem 1.25rem 4rem;
     }
 
-    /* -- Card style shared by form, results, and chart -- */
+    /* Each tool section — hidden by default, shown via JS */
+    .tool-section {
+      display: none;
+    }
+
+    .tool-section.visible {
+      display: block;
+      animation: fadeUp .4s ease;
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(12px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Section header — title + subtitle for each tool */
+    .section-header {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+
+    .section-header h2 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-bottom: .35rem;
+    }
+
+    .section-header p {
+      color: var(--text-secondary);
+      font-size: .92rem;
+    }
+
+    /*
+     * ==========================================================
+     *  CARD COMPONENT
+     *  Gestalt "common region" — each card clearly bounds a
+     *  group of related content with border + background.
+     *  Gestalt "figure/ground" — elevated surface floats over
+     *  the dark page background.
+     * ==========================================================
+     */
     .card {
-      background: var(--clr-card);
+      background: var(--surface);
+      border: 1px solid var(--border);
       border-radius: var(--radius);
+      padding: 24px;             /* 24px internal padding (proximity) */
+      margin-bottom: 32px;       /* 32px between sections */
       box-shadow: var(--shadow);
-      padding: 1.5rem;
-      margin-bottom: 1.5rem;
+      transition: border-color .2s ease;
     }
 
-    .card h2 {
-      font-size: 1.1rem;
-      margin-bottom: 1rem;
-      color: var(--clr-primary);
+    .card:hover {
+      border-color: var(--border-bright);
     }
 
-    /* -- Form grid -- */
+    .card-title {
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      margin-bottom: 1.25rem;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      font-size: .78rem;
+    }
+
+    /*
+     * ==========================================================
+     *  FLOATING LABEL INPUTS
+     *  The label sits inside the input area and "floats" up
+     *  when the input is focused or has a value.
+     *  "Similarity" principle: every input uses same pattern.
+     * ==========================================================
+     */
+    .float-field {
+      position: relative;
+      margin-bottom: 1.25rem;
+    }
+
+    .float-field input,
+    .float-field select {
+      width: 100%;
+      padding: 1.15rem .9rem .45rem;
+      background: var(--elevated);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: var(--text);
+      font-family: inherit;
+      font-size: 1rem;
+      font-variant-numeric: tabular-nums;
+      transition: border-color .2s, box-shadow .2s;
+      outline: none;
+      /* Remove browser default styling for number spinners */
+      -moz-appearance: textfield;
+    }
+
+    .float-field input::-webkit-outer-spin-button,
+    .float-field input::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+
+    /* Purple glow on focus — micro-interaction */
+    .float-field input:focus,
+    .float-field select:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px var(--primary-glow);
+    }
+
+    /* The floating label itself */
+    .float-field label {
+      position: absolute;
+      left: .9rem;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: .92rem;
+      color: var(--text-muted);
+      pointer-events: none;
+      transition: all .2s ease;
+    }
+
+    /*
+     * When the input is focused OR has content (via :not(:placeholder-shown)),
+     * the label floats up and shrinks. We use a placeholder=" " trick
+     * so :placeholder-shown works for detecting empty vs filled.
+     */
+    .float-field input:focus ~ label,
+    .float-field input:not(:placeholder-shown) ~ label,
+    .float-field select ~ label {
+      top: .55rem;
+      font-size: .7rem;
+      color: var(--text-secondary);
+      transform: translateY(0);
+    }
+
+    /* Prefix/suffix symbols ($ and %) positioned inside the input */
+    .float-field .prefix,
+    .float-field .suffix {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-muted);
+      font-size: .95rem;
+      font-weight: 500;
+      pointer-events: none;
+    }
+
+    .float-field .prefix {
+      left: .9rem;
+    }
+
+    .float-field .suffix {
+      right: .9rem;
+    }
+
+    /* When a prefix exists, add left padding to input */
+    .float-field.has-prefix input {
+      padding-left: 1.75rem;
+    }
+
+    .float-field.has-prefix label {
+      left: 1.75rem;
+    }
+
+    /* When a suffix exists, add right padding */
+    .float-field.has-suffix input {
+      padding-right: 2.2rem;
+    }
+
+    /* Two-column grid for form inputs (Gestalt proximity) */
     .form-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 1rem;
     }
 
-    .form-group {
-      display: flex;
-      flex-direction: column;
-    }
-
-    .form-group label {
-      font-size: .85rem;
-      font-weight: 600;
-      margin-bottom: .3rem;
-      color: var(--clr-text-muted);
-    }
-
-    .form-group input,
-    .form-group select {
-      padding: .55rem .75rem;
-      border: 1px solid var(--clr-border);
-      border-radius: 8px;
-      font-size: 1rem;
-      color: var(--clr-text);
-      transition: border-color .15s;
-    }
-
-    .form-group input:focus,
-    .form-group select:focus {
-      outline: none;
-      border-color: var(--clr-primary);
-      box-shadow: 0 0 0 3px var(--clr-primary-light);
-    }
-
-    /* -- Calculate button -- */
-    .btn {
+    .form-grid .full-width {
       grid-column: 1 / -1;
-      padding: .75rem;
-      background: var(--clr-primary);
-      color: #fff;
-      border: none;
-      border-radius: 8px;
-      font-size: 1rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: background .15s;
     }
 
-    .btn:hover { background: #1557b0; }
+    /*
+     * ==========================================================
+     *  BUTTONS
+     *  Primary (filled purple), ghost (outline), shared styles.
+     *  Micro-interaction: scale(1.02) + brightness on hover.
+     * ==========================================================
+     */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: .5rem;
+      border: none;
+      border-radius: var(--radius-sm);
+      font-family: inherit;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all .2s ease;
+    }
 
-    /* -- Results grid -- */
-    .results-grid {
+    .btn:hover {
+      transform: scale(1.02);
+      filter: brightness(1.1);
+    }
+
+    .btn:active {
+      transform: scale(.98);
+    }
+
+    .btn-primary {
+      width: 100%;
+      padding: .9rem;
+      background: var(--primary);
+      color: #fff;
+      font-size: 1rem;
+      box-shadow: 0 4px 14px rgba(108, 99, 255, .35);
+    }
+
+    .btn-primary:hover {
+      box-shadow: 0 6px 20px rgba(108, 99, 255, .5);
+    }
+
+    .btn-ghost {
+      width: 100%;
+      padding: .75rem;
+      background: transparent;
+      color: var(--text-secondary);
+      border: 1px solid var(--border);
+      font-size: .95rem;
+      margin-top: 1rem;
+    }
+
+    .btn-ghost:hover {
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+
+    /*
+     * ==========================================================
+     *  COMPOUND CALCULATOR — RESULTS GRID
+     *  2×2 metric cards showing large numbers.
+     *  Each card is an "elevated" surface inside the card.
+     * ==========================================================
+     */
+    .metrics-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 1rem;
     }
 
-    .result-item {
-      background: var(--clr-primary-light);
-      border-radius: 8px;
-      padding: 1rem;
+    .metric-card {
+      background: var(--elevated);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 1.1rem;
+      transition: border-color .2s;
     }
 
-    .result-item .label {
-      font-size: .8rem;
+    .metric-card:hover {
+      border-color: var(--border-bright);
+    }
+
+    .metric-card .metric-label {
+      font-size: .72rem;
       font-weight: 600;
-      color: var(--clr-text-muted);
       text-transform: uppercase;
-      letter-spacing: .03em;
+      letter-spacing: .05em;
+      color: var(--text-muted);
+      margin-bottom: .3rem;
     }
 
-    .result-item .value {
-      font-size: 1.35rem;
+    .metric-card .metric-value {
+      font-size: 1.4rem;
       font-weight: 700;
-      color: var(--clr-text);
-      margin-top: .2rem;
+      font-variant-numeric: tabular-nums;
+      color: var(--text);
     }
 
-    /* -- Chart canvas -- */
-    .chart-wrapper {
+    /* Color accents for specific metrics */
+    .metric-card.accent-primary .metric-value { color: var(--primary); }
+    .metric-card.accent-success .metric-value { color: var(--success); }
+
+    /*
+     * ==========================================================
+     *  COMPOUND CALCULATOR — CHART
+     *  Dark-themed Chart.js container.
+     * ==========================================================
+     */
+    .chart-container {
       position: relative;
       width: 100%;
-      max-height: 400px;
+      aspect-ratio: 16 / 9;
     }
 
-    /* -- Mobile adjustments -- */
+    /*
+     * ==========================================================
+     *  RSU DECISION ENGINE — PROGRESS DOTS
+     *  6 dots connected by a line across the top.
+     *  Completed = filled purple. Active = purple ring.
+     *  Gestalt "continuity" — the connecting line guides
+     *  the eye across the steps.
+     *  Gestalt "closure" — incomplete circle rings for
+     *  pending steps suggest completion ahead.
+     * ==========================================================
+     */
+    .rsu-progress {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0;
+      margin-bottom: 2rem;
+      padding: 0 1rem;
+    }
+
+    .rsu-dot {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: .7rem;
+      font-weight: 700;
+      flex-shrink: 0;
+      transition: all .3s ease;
+      /* Default: incomplete ring (closure principle) */
+      border: 2px solid var(--border);
+      background: transparent;
+      color: var(--text-muted);
+    }
+
+    /* Completed step — filled solid purple */
+    .rsu-dot.done {
+      background: var(--primary);
+      border-color: var(--primary);
+      color: #fff;
+    }
+
+    /* Active step — purple ring, not filled (closure) */
+    .rsu-dot.active {
+      border-color: var(--primary);
+      color: var(--primary);
+      box-shadow: 0 0 0 3px var(--primary-dim);
+    }
+
+    /* Connecting line segments between dots */
+    .rsu-line {
+      width: 28px;
+      height: 2px;
+      background: var(--border);
+      transition: background .3s;
+    }
+
+    .rsu-line.filled {
+      background: var(--primary);
+    }
+
+    /*
+     * ==========================================================
+     *  RSU DECISION ENGINE — STEP CARDS
+     *  One question per card. Cards slide/fade in.
+     * ==========================================================
+     */
+    .step-card {
+      display: none;
+    }
+
+    .step-card.active {
+      display: block;
+      animation: fadeUp .35s ease;
+    }
+
+    .step-card .question-text {
+      font-size: 1.15rem;
+      font-weight: 600;
+      margin-bottom: .4rem;
+    }
+
+    .step-card .helper-text {
+      font-size: .85rem;
+      color: var(--text-secondary);
+      margin-bottom: 1.25rem;
+    }
+
+    /*
+     * Large toggle cards for Yes/No answers.
+     * Full clickable area — not just a small switch.
+     * Gestalt "similarity" — both options share style.
+     */
+    .toggle-cards {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: .75rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .toggle-card {
+      background: var(--elevated);
+      border: 2px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.25rem;
+      text-align: center;
+      cursor: pointer;
+      transition: all .2s ease;
+      font-family: inherit;
+      color: var(--text-secondary);
+      font-size: 1.05rem;
+      font-weight: 600;
+    }
+
+    .toggle-card:hover {
+      border-color: var(--primary);
+      transform: scale(1.02);
+    }
+
+    .toggle-card.selected {
+      border-color: var(--primary);
+      background: var(--primary-dim);
+      color: var(--primary);
+      box-shadow: 0 0 16px rgba(108, 99, 255, .2);
+    }
+
+    .toggle-card .tc-icon {
+      font-size: 1.6rem;
+      margin-bottom: .4rem;
+      display: block;
+    }
+
+    /* Step navigation buttons */
+    .step-nav {
+      display: flex;
+      gap: .75rem;
+      margin-top: .5rem;
+    }
+
+    .step-nav .btn {
+      flex: 1;
+    }
+
+    .btn-back {
+      background: var(--elevated);
+      border: 1px solid var(--border);
+      color: var(--text-secondary);
+      padding: .75rem;
+      font-size: .92rem;
+    }
+
+    .btn-next {
+      background: var(--primary);
+      color: #fff;
+      padding: .75rem;
+      font-size: .92rem;
+      box-shadow: 0 4px 14px rgba(108, 99, 255, .3);
+    }
+
+    /*
+     * ==========================================================
+     *  RSU — SLIDER WITH LIVE VALUE
+     *  Custom range slider styled for dark theme.
+     * ==========================================================
+     */
+    .range-group {
+      margin-bottom: 1.25rem;
+    }
+
+    .range-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: .75rem;
+    }
+
+    .range-value {
+      font-size: 1.6rem;
+      font-weight: 800;
+      font-variant-numeric: tabular-nums;
+      color: var(--primary);
+    }
+
+    .range-group input[type="range"] {
+      width: 100%;
+      -webkit-appearance: none;
+      appearance: none;
+      height: 8px;
+      border-radius: 4px;
+      background: var(--border);
+      outline: none;
+      cursor: pointer;
+    }
+
+    .range-group input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: var(--primary);
+      cursor: pointer;
+      border: 3px solid var(--surface);
+      box-shadow: 0 0 8px rgba(108, 99, 255, .5);
+    }
+
+    /* Concentration bar indicator below slider */
+    .conc-bar-wrapper {
+      margin-top: 1rem;
+    }
+
+    .conc-bar-labels {
+      display: flex;
+      justify-content: space-between;
+      font-size: .7rem;
+      color: var(--text-muted);
+      margin-bottom: .35rem;
+    }
+
+    .conc-bar {
+      height: 6px;
+      border-radius: 3px;
+      background: var(--border);
+      overflow: hidden;
+      position: relative;
+    }
+
+    .conc-bar-fill {
+      height: 100%;
+      border-radius: 3px;
+      transition: width .3s ease, background .3s ease;
+    }
+
+    /*
+     * ==========================================================
+     *  RSU — SELECT DROPDOWN (styled for dark theme)
+     * ==========================================================
+     */
+    .dark-select {
+      width: 100%;
+      padding: .85rem 1rem;
+      background: var(--elevated);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: var(--text);
+      font-family: inherit;
+      font-size: 1rem;
+      cursor: pointer;
+      outline: none;
+      transition: border-color .2s, box-shadow .2s;
+      margin-bottom: 1.25rem;
+      -webkit-appearance: none;
+      appearance: none;
+      /* Custom dropdown arrow */
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%238888AA' d='M2 4l4 4 4-4'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 1rem center;
+    }
+
+    .dark-select:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px var(--primary-glow);
+    }
+
+    .dark-select option {
+      background: var(--elevated);
+      color: var(--text);
+    }
+
+    /*
+     * ==========================================================
+     *  RSU — VERDICT / RESULTS SCREEN
+     * ==========================================================
+     */
+
+    /* Verdict reveal animation */
+    @keyframes verdictReveal {
+      from { opacity: 0; transform: scale(.85); }
+      to   { opacity: 1; transform: scale(1); }
+    }
+
+    .verdict-area {
+      text-align: center;
+      margin-bottom: 2rem;
+      animation: verdictReveal .5s ease;
+    }
+
+    /* Large verdict badge with glow effect */
+    .verdict-badge {
+      display: inline-block;
+      padding: .65rem 2rem;
+      border-radius: 50px;
+      font-size: 1.5rem;
+      font-weight: 800;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+
+    .verdict-badge.sell {
+      background: var(--danger-dim);
+      color: var(--danger);
+      border: 2px solid var(--danger);
+      box-shadow: 0 0 24px rgba(255, 71, 87, .3), 0 0 48px rgba(255, 71, 87, .1);
+    }
+
+    .verdict-badge.partial {
+      background: var(--warning-dim);
+      color: var(--warning);
+      border: 2px solid var(--warning);
+      box-shadow: 0 0 24px rgba(245, 166, 35, .3), 0 0 48px rgba(245, 166, 35, .1);
+    }
+
+    .verdict-badge.hold {
+      background: var(--success-dim);
+      color: var(--success);
+      border: 2px solid var(--success);
+      box-shadow: 0 0 24px rgba(0, 212, 170, .3), 0 0 48px rgba(0, 212, 170, .1);
+    }
+
+    .verdict-headline {
+      font-size: 1.35rem;
+      font-weight: 600;
+      margin-top: 1rem;
+      color: var(--text);
+      line-height: 1.4;
+    }
+
+    /*
+     * Reason cards — each has a colored left border.
+     * Not plain bullets — structured cards for scannability.
+     */
+    .reason-card {
+      background: var(--elevated);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--primary);
+      border-radius: var(--radius-sm);
+      padding: 1rem 1.15rem;
+      margin-bottom: .75rem;
+      font-size: .92rem;
+      line-height: 1.55;
+      color: var(--text);
+    }
+
+    .reason-card strong {
+      color: var(--primary);
+    }
+
+    /*
+     * Tax comparison table — two-column layout.
+     */
+    .tax-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 1.5rem;
+    }
+
+    .tax-table th {
+      text-align: left;
+      font-size: .72rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .05em;
+      color: var(--text-muted);
+      padding: .65rem .85rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .tax-table td {
+      padding: .75rem .85rem;
+      font-size: 1.05rem;
+      font-weight: 600;
+      font-variant-numeric: tabular-nums;
+      color: var(--text);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .tax-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .tax-table .highlight-cell {
+      color: var(--success);
+    }
+
+    /*
+     * Concentration meter — horizontal bar
+     */
+    .conc-meter {
+      margin-bottom: 1.5rem;
+    }
+
+    .conc-meter-label {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: .5rem;
+    }
+
+    .conc-meter-label span:first-child {
+      font-size: .75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+      color: var(--text-muted);
+    }
+
+    .conc-meter-label span:last-child {
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .conc-meter-bar {
+      height: 10px;
+      border-radius: 5px;
+      background: var(--border);
+      overflow: hidden;
+    }
+
+    .conc-meter-fill {
+      height: 100%;
+      border-radius: 5px;
+      transition: width .6s ease;
+    }
+
+    /*
+     * ==========================================================
+     *  FOOTER
+     * ==========================================================
+     */
+    .site-footer {
+      text-align: center;
+      padding: 2rem 1rem 3rem;
+      color: var(--text-muted);
+      font-size: .78rem;
+      line-height: 1.7;
+      max-width: 720px;
+      margin: 0 auto;
+    }
+
+    .site-footer .credit {
+      margin-top: .5rem;
+      color: var(--text-muted);
+    }
+
+    /*
+     * ==========================================================
+     *  UTILITY CLASSES
+     * ==========================================================
+     */
+    .hidden { display: none !important; }
+
+    /*
+     * ==========================================================
+     *  MOBILE RESPONSIVE
+     *  Stack grids to single column on small screens.
+     * ==========================================================
+     */
     @media (max-width: 600px) {
-      .form-grid,
-      .results-grid {
+      .header-inner {
+        flex-direction: column;
+        gap: .75rem;
+      }
+
+      .pill-toggle button {
+        font-size: .75rem;
+        padding: .4rem .75rem;
+      }
+
+      .form-grid {
         grid-template-columns: 1fr;
       }
 
-      h1 { font-size: 1.4rem; }
+      .metrics-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .section-header h2 {
+        font-size: 1.25rem;
+      }
+
+      .toggle-cards {
+        grid-template-columns: 1fr;
+      }
+
+      .verdict-badge {
+        font-size: 1.2rem;
+        padding: .55rem 1.5rem;
+      }
+
+      .verdict-headline {
+        font-size: 1.1rem;
+      }
+
+      .tax-table th, .tax-table td {
+        padding: .55rem .6rem;
+        font-size: .9rem;
+      }
     }
   </style>
 </head>
 
 <body>
-  <div class="container">
-    <h1>Compound Interest Calculator</h1>
-    <p class="subtitle">See how your money grows over time with the power of compounding.</p>
 
-    <!-- ==================== INPUT FORM ==================== -->
-    <div class="card">
-      <h2>Inputs</h2>
-      <div class="form-grid">
-        <div class="form-group">
-          <label for="principal">Initial Principal ($)</label>
-          <input type="number" id="principal" value="10000" min="0" step="100">
+  <!-- ==========================================================
+       HEADER — logo + pill toggle to switch between tools
+       ========================================================== -->
+  <header class="site-header">
+    <div class="header-inner">
+      <div class="logo">Buckets<span>Wealth</span></div>
+      <div class="pill-toggle">
+        <button class="active" onclick="switchTool('compound')">Compound Calculator</button>
+        <button onclick="switchTool('rsu')">RSU Decision Engine</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="main-content">
+
+    <!-- ==========================================================
+         TOOL 1: COMPOUND INTEREST CALCULATOR
+         ========================================================== -->
+    <section id="tool-compound" class="tool-section visible">
+
+      <div class="section-header">
+        <h2>Compound Interest Calculator</h2>
+        <p>See how your money grows over time with the power of compounding.</p>
+      </div>
+
+      <!-- ---------- INPUT FORM ---------- -->
+      <div class="card">
+        <div class="card-title">Inputs</div>
+        <div class="form-grid">
+          <!-- Principal — with $ prefix -->
+          <div class="float-field has-prefix">
+            <span class="prefix">$</span>
+            <input type="number" id="ci-principal" placeholder=" " value="10000" min="0" step="100">
+            <label>Initial Principal</label>
+          </div>
+
+          <!-- Annual rate — with % suffix -->
+          <div class="float-field has-suffix">
+            <input type="number" id="ci-rate" placeholder=" " value="7" min="0" step="0.1">
+            <label>Annual Interest Rate</label>
+            <span class="suffix">%</span>
+          </div>
+
+          <!-- Years -->
+          <div class="float-field">
+            <input type="number" id="ci-years" placeholder=" " value="20" min="1" max="100" step="1">
+            <label>Investment Period (Years)</label>
+          </div>
+
+          <!-- Monthly contribution — with $ prefix -->
+          <div class="float-field has-prefix">
+            <span class="prefix">$</span>
+            <input type="number" id="ci-monthly" placeholder=" " value="200" min="0" step="50">
+            <label>Monthly Contribution</label>
+          </div>
+
+          <!-- Compounding frequency — select -->
+          <div class="float-field">
+            <select id="ci-frequency">
+              <option value="12" selected>Monthly</option>
+              <option value="4">Quarterly</option>
+              <option value="1">Annually</option>
+            </select>
+            <label>Compounding Frequency</label>
+          </div>
+
+          <!-- Inflation rate — with % suffix -->
+          <div class="float-field has-suffix">
+            <input type="number" id="ci-inflation" placeholder=" " value="3" min="0" step="0.1">
+            <label>Inflation Rate</label>
+            <span class="suffix">%</span>
+          </div>
+
+          <!-- Calculate button — spans both columns -->
+          <div class="full-width">
+            <button class="btn btn-primary" onclick="ciCalculate()">Calculate</button>
+          </div>
         </div>
+      </div>
 
-        <div class="form-group">
-          <label for="rate">Annual Interest Rate (%)</label>
-          <input type="number" id="rate" value="7" min="0" step="0.1">
+      <!-- ---------- RESULTS (hidden until calculated) ---------- -->
+      <div class="card hidden" id="ci-results-card">
+        <div class="card-title">Results</div>
+        <div class="metrics-grid">
+          <div class="metric-card accent-primary">
+            <div class="metric-label">Final Balance</div>
+            <div class="metric-value num" id="ci-out-balance">—</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-label">Total Contributions</div>
+            <div class="metric-value num" id="ci-out-contributions">—</div>
+          </div>
+          <div class="metric-card accent-success">
+            <div class="metric-label">Total Interest Earned</div>
+            <div class="metric-value num" id="ci-out-interest">—</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-label">Inflation-Adjusted Value</div>
+            <div class="metric-value num" id="ci-out-real">—</div>
+          </div>
         </div>
+      </div>
 
-        <div class="form-group">
-          <label for="years">Investment Period (Years)</label>
-          <input type="number" id="years" value="20" min="1" max="100" step="1">
+      <!-- ---------- CHART ---------- -->
+      <div class="card hidden" id="ci-chart-card">
+        <div class="card-title">Growth Over Time</div>
+        <div class="chart-container">
+          <canvas id="ciGrowthChart"></canvas>
         </div>
+      </div>
+    </section>
 
-        <div class="form-group">
-          <label for="monthly">Monthly Contribution ($)</label>
-          <input type="number" id="monthly" value="200" min="0" step="50">
+    <!-- ==========================================================
+         TOOL 2: RSU SELL VS HOLD DECISION ENGINE
+         ========================================================== -->
+    <section id="tool-rsu" class="tool-section">
+
+      <div class="section-header">
+        <h2>RSU Sell vs Hold</h2>
+        <p>Answer a few questions to get a personalized recommendation.</p>
+      </div>
+
+      <!-- ---------- PROGRESS DOTS ----------
+           6 question dots + 1 result dot = 7 dots
+           Connected by line segments (continuity principle) -->
+      <div class="rsu-progress" id="rsu-progress">
+        <!-- Built dynamically by JS for cleanliness -->
+      </div>
+
+      <!-- ---------- STEP 1: RSU VALUE ---------- -->
+      <div class="step-card active" data-step="1">
+        <div class="card">
+          <div class="question-text">What is the current value of your vested RSUs?</div>
+          <div class="helper-text">Total market value of the RSUs you're considering selling.</div>
+          <div class="float-field has-prefix">
+            <span class="prefix">$</span>
+            <input type="number" id="rsu-value" placeholder=" " value="50000" min="0" step="1000">
+            <label>RSU Value</label>
+          </div>
+          <div class="step-nav">
+            <button class="btn btn-next" onclick="rsuNext(2)">Next</button>
+          </div>
         </div>
+      </div>
 
-        <div class="form-group">
-          <label for="frequency">Compounding Frequency</label>
-          <select id="frequency">
-            <option value="12" selected>Monthly</option>
-            <option value="4">Quarterly</option>
-            <option value="1">Annually</option>
+      <!-- ---------- STEP 2: HOLDING PERIOD ---------- -->
+      <div class="step-card" data-step="2">
+        <div class="card">
+          <div class="question-text">How long have you held these RSUs?</div>
+          <div class="helper-text">This determines whether gains are taxed at short-term or long-term rates.</div>
+          <div class="toggle-cards" id="rsu-hold-toggle">
+            <button class="toggle-card" data-value="short" onclick="rsuToggle(this)">
+              <span class="tc-icon">&#9201;</span>
+              Less than 1 year
+            </button>
+            <button class="toggle-card" data-value="long" onclick="rsuToggle(this)">
+              <span class="tc-icon">&#128197;</span>
+              More than 1 year
+            </button>
+          </div>
+          <div class="step-nav">
+            <button class="btn btn-back" onclick="rsuBack(1)">Back</button>
+            <button class="btn btn-next" onclick="rsuNext(3)">Next</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ---------- STEP 3: HIGH-INTEREST DEBT ---------- -->
+      <div class="step-card" data-step="3">
+        <div class="card">
+          <div class="question-text">Do you have high-interest debt?</div>
+          <div class="helper-text">Credit cards or loans above 7% interest rate.</div>
+          <div class="toggle-cards" id="rsu-debt-toggle">
+            <button class="toggle-card" data-value="yes" onclick="rsuToggle(this)">
+              <span class="tc-icon">&#128176;</span>
+              Yes, I do
+            </button>
+            <button class="toggle-card" data-value="no" onclick="rsuToggle(this)">
+              <span class="tc-icon">&#10004;</span>
+              No debt above 7%
+            </button>
+          </div>
+          <div class="step-nav">
+            <button class="btn btn-back" onclick="rsuBack(2)">Back</button>
+            <button class="btn btn-next" onclick="rsuNext(4)">Next</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ---------- STEP 4: EMERGENCY FUND ---------- -->
+      <div class="step-card" data-step="4">
+        <div class="card">
+          <div class="question-text">Do you have an emergency fund covering 3–6 months of expenses?</div>
+          <div class="helper-text">Cash savings you can access immediately if you lose your income.</div>
+          <div class="toggle-cards" id="rsu-emergency-toggle">
+            <button class="toggle-card" data-value="yes" onclick="rsuToggle(this)">
+              <span class="tc-icon">&#128170;</span>
+              Yes, I'm covered
+            </button>
+            <button class="toggle-card" data-value="no" onclick="rsuToggle(this)">
+              <span class="tc-icon">&#9888;</span>
+              Not yet
+            </button>
+          </div>
+          <div class="step-nav">
+            <button class="btn btn-back" onclick="rsuBack(3)">Back</button>
+            <button class="btn btn-next" onclick="rsuNext(5)">Next</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ---------- STEP 5: CONCENTRATION % ---------- -->
+      <div class="step-card" data-step="5">
+        <div class="card">
+          <div class="question-text">What percentage of your total net worth is this RSU holding?</div>
+          <div class="helper-text">Include all assets: savings, investments, property, etc.</div>
+          <div class="range-group">
+            <div class="range-header">
+              <span class="helper-text" style="margin-bottom:0">Concentration</span>
+              <span class="range-value" id="rsu-conc-label">25%</span>
+            </div>
+            <input type="range" id="rsu-concentration" min="0" max="100" value="25"
+                   oninput="rsuUpdateConcentration()">
+            <!-- Live color bar showing risk zone -->
+            <div class="conc-bar-wrapper">
+              <div class="conc-bar-labels">
+                <span>0% — Safe</span>
+                <span>20% — Threshold</span>
+                <span>100%</span>
+              </div>
+              <div class="conc-bar">
+                <div class="conc-bar-fill" id="rsu-conc-fill" style="width:25%; background:var(--warning)"></div>
+              </div>
+            </div>
+          </div>
+          <div class="step-nav">
+            <button class="btn btn-back" onclick="rsuBack(4)">Back</button>
+            <button class="btn btn-next" onclick="rsuNext(6)">Next</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ---------- STEP 6: TAX BRACKET ---------- -->
+      <div class="step-card" data-step="6">
+        <div class="card">
+          <div class="question-text">What is your estimated federal tax bracket?</div>
+          <div class="helper-text">Check your most recent tax return or pay stub if unsure.</div>
+          <select class="dark-select" id="rsu-bracket">
+            <option value="22">22%</option>
+            <option value="24" selected>24%</option>
+            <option value="32">32%</option>
+            <option value="35">35%</option>
+            <option value="37">37%</option>
           </select>
-        </div>
-
-        <div class="form-group">
-          <label for="inflation">Inflation Rate (%)</label>
-          <input type="number" id="inflation" value="3" min="0" step="0.1">
-        </div>
-
-        <!-- Calculate button spans full width -->
-        <button class="btn" onclick="calculate()">Calculate</button>
-      </div>
-    </div>
-
-    <!-- ==================== OUTPUT / RESULTS ==================== -->
-    <div class="card" id="results-card" style="display:none;">
-      <h2>Results</h2>
-      <div class="results-grid">
-        <div class="result-item">
-          <div class="label">Final Balance</div>
-          <div class="value" id="out-balance">—</div>
-        </div>
-        <div class="result-item">
-          <div class="label">Total Contributions</div>
-          <div class="value" id="out-contributions">—</div>
-        </div>
-        <div class="result-item">
-          <div class="label">Total Interest Earned</div>
-          <div class="value" id="out-interest">—</div>
-        </div>
-        <div class="result-item">
-          <div class="label">Inflation-Adjusted Value</div>
-          <div class="value" id="out-real">—</div>
+          <div class="step-nav">
+            <button class="btn btn-back" onclick="rsuBack(5)">Back</button>
+            <button class="btn btn-primary" onclick="rsuGetRecommendation()">Get My Recommendation</button>
+          </div>
         </div>
       </div>
-    </div>
 
-    <!-- ==================== CHART ==================== -->
-    <div class="card" id="chart-card" style="display:none;">
-      <h2>Growth Over Time</h2>
-      <div class="chart-wrapper">
-        <canvas id="growthChart"></canvas>
+      <!-- ---------- STEP 7: RESULTS ---------- -->
+      <div class="step-card" data-step="7">
+        <div class="card" id="rsu-results-card">
+          <!-- Filled dynamically by JS -->
+        </div>
       </div>
-    </div>
-  </div>
+    </section>
+  </main>
 
-  <!-- ==================== JAVASCRIPT ==================== -->
+  <!-- ==========================================================
+       FOOTER
+       ========================================================== -->
+  <footer class="site-footer">
+    <div>For educational purposes only. Not financial advice. Consult a qualified financial advisor.</div>
+    <div class="credit">Built with Claude Code</div>
+  </footer>
+
+  <!-- ==========================================================
+       JAVASCRIPT
+       All logic for both tools in one inline script.
+       ========================================================== -->
   <script>
-    /* Currency formatter */
+    /*
+     * ============================================================
+     *  SHARED: Currency formatter
+     *  Uses Intl.NumberFormat for locale-aware dollar formatting.
+     * ============================================================
+     */
     const fmt = new Intl.NumberFormat("en-US", {
       style: "currency",
       currency: "USD",
       maximumFractionDigits: 0,
     });
 
-    /* Reference to the Chart.js instance so we can update it */
-    let chart = null;
-
-    /**
-     * Core calculation logic.
-     * Simulates month-by-month growth, compounds at the chosen frequency,
-     * and tracks nominal balance, contributions, and inflation-adjusted value.
+    /*
+     * ============================================================
+     *  TOOL SWITCHER
+     *  Controls the pill toggle in the header.
+     *  Only one tool section is visible at a time.
+     * ============================================================
      */
-    function calculate() {
-      // -- Read inputs --
-      const principal       = parseFloat(document.getElementById("principal").value) || 0;
-      const annualRate      = parseFloat(document.getElementById("rate").value) / 100;
-      const years           = parseInt(document.getElementById("years").value, 10) || 1;
-      const monthlyContrib  = parseFloat(document.getElementById("monthly").value) || 0;
-      const compFreq        = parseInt(document.getElementById("frequency").value, 10);
-      const inflationRate   = parseFloat(document.getElementById("inflation").value) / 100;
+    function switchTool(tool) {
+      /* Update pill toggle buttons */
+      const pills = document.querySelectorAll(".pill-toggle button");
+      pills.forEach((p) => p.classList.remove("active"));
+      /* Find the clicked pill and mark it active */
+      if (tool === "compound") {
+        pills[0].classList.add("active");
+      } else {
+        pills[1].classList.add("active");
+      }
 
-      // Periodic interest rate per compounding period
+      /* Show/hide sections */
+      document.getElementById("tool-compound").classList.toggle("visible", tool === "compound");
+      document.getElementById("tool-rsu").classList.toggle("visible", tool === "rsu");
+
+      /* Remove the generic 'display:none' from tool-section
+         and let .visible control visibility */
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    /*
+     * ============================================================
+     *  ANIMATED NUMBER COUNTER
+     *  Smoothly animates from one number to another over ~400ms.
+     *  Gives a polished feel when results update.
+     * ============================================================
+     */
+    function animateValue(el, targetValue) {
+      const startValue = parseInt(el.textContent.replace(/[^0-9.-]/g, "")) || 0;
+      const diff = targetValue - startValue;
+      const duration = 400; /* ms */
+      const startTime = performance.now();
+
+      function tick(now) {
+        const elapsed = now - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        /* Ease-out curve for natural deceleration */
+        const eased = 1 - Math.pow(1 - progress, 3);
+        const current = Math.round(startValue + diff * eased);
+        el.textContent = fmt.format(current);
+        if (progress < 1) requestAnimationFrame(tick);
+      }
+
+      requestAnimationFrame(tick);
+    }
+
+    /*
+     * ============================================================
+     *  COMPOUND INTEREST CALCULATOR
+     *  Preserved logic from the original index.html.
+     *  Month-by-month simulation with configurable compounding.
+     * ============================================================
+     */
+    let ciChart = null; /* Chart.js instance reference */
+
+    function ciCalculate() {
+      /* -- Read inputs -- */
+      const principal      = parseFloat(document.getElementById("ci-principal").value) || 0;
+      const annualRate     = parseFloat(document.getElementById("ci-rate").value) / 100;
+      const years          = parseInt(document.getElementById("ci-years").value, 10) || 1;
+      const monthlyContrib = parseFloat(document.getElementById("ci-monthly").value) || 0;
+      const compFreq       = parseInt(document.getElementById("ci-frequency").value, 10);
+      const inflationRate  = parseFloat(document.getElementById("ci-inflation").value) / 100;
+
+      /* Periodic rate: annual rate divided by number of compounding periods */
       const periodicRate = annualRate / compFreq;
 
-      // How many months between each compounding event
+      /* How many months pass between each compounding event */
       const monthsPerPeriod = 12 / compFreq;
 
-      // -- Simulation arrays (year-end snapshots, starting with year 0) --
-      const labels       = [0];
-      const nominalData  = [principal];
-      const realData     = [principal];
-      const contribData  = [principal];
+      /* Year-end snapshot arrays, seeded with year 0 = principal */
+      const labels      = [0];
+      const nominalData = [principal];
+      const realData    = [principal];
+      const contribData = [principal];
 
       let balance      = principal;
       let totalContrib = principal;
       const totalMonths = years * 12;
 
+      /*
+       * Core simulation loop — runs month by month.
+       * Contributions added monthly; interest applied at compounding intervals.
+       */
       for (let month = 1; month <= totalMonths; month++) {
-        // Monthly contribution added at the start of each month
         balance      += monthlyContrib;
         totalContrib += monthlyContrib;
 
-        // Apply interest at compounding intervals
+        /* Apply interest at each compounding interval */
         if (month % monthsPerPeriod === 0) {
           balance *= (1 + periodicRate);
         }
 
-        // Record year-end snapshot
+        /* Record year-end snapshot for chart data */
         if (month % 12 === 0) {
-          const yearNum = month / 12;
+          const yearNum   = month / 12;
           const realValue = balance / Math.pow(1 + inflationRate, yearNum);
 
           labels.push(yearNum);
@@ -315,67 +1377,78 @@
         }
       }
 
-      // -- Derived results --
-      const finalBalance   = balance;
-      const totalInterest  = finalBalance - totalContrib;
-      const realFinal      = finalBalance / Math.pow(1 + inflationRate, years);
+      /* Derived totals */
+      const finalBalance  = balance;
+      const totalInterest = finalBalance - totalContrib;
+      const realFinal     = finalBalance / Math.pow(1 + inflationRate, years);
 
-      // -- Update the DOM --
-      document.getElementById("out-balance").textContent      = fmt.format(finalBalance);
-      document.getElementById("out-contributions").textContent = fmt.format(totalContrib);
-      document.getElementById("out-interest").textContent      = fmt.format(totalInterest);
-      document.getElementById("out-real").textContent          = fmt.format(realFinal);
+      /* Animate the result numbers into place */
+      animateValue(document.getElementById("ci-out-balance"),       Math.round(finalBalance));
+      animateValue(document.getElementById("ci-out-contributions"), Math.round(totalContrib));
+      animateValue(document.getElementById("ci-out-interest"),      Math.round(totalInterest));
+      animateValue(document.getElementById("ci-out-real"),          Math.round(realFinal));
 
-      document.getElementById("results-card").style.display = "block";
-      document.getElementById("chart-card").style.display   = "block";
+      /* Reveal results and chart cards */
+      document.getElementById("ci-results-card").classList.remove("hidden");
+      document.getElementById("ci-chart-card").classList.remove("hidden");
 
-      // -- Render / update Chart.js chart --
-      renderChart(labels, nominalData, realData, contribData);
+      /* Render the Chart.js chart */
+      ciRenderChart(labels, nominalData, realData, contribData);
     }
 
-    /**
-     * Draws (or updates) the Chart.js line chart with three datasets:
-     *   1. Nominal growth
-     *   2. Inflation-adjusted growth
-     *   3. Total contributions
+    /*
+     * Chart rendering — dark-themed with purple/teal/amber lines.
+     * Destroys previous instance before creating a new one.
      */
-    function renderChart(labels, nominal, real, contributions) {
-      const ctx = document.getElementById("growthChart").getContext("2d");
+    function ciRenderChart(labels, nominal, real, contributions) {
+      const ctx = document.getElementById("ciGrowthChart").getContext("2d");
+      if (ciChart) ciChart.destroy();
 
-      // Destroy previous chart instance if it exists
-      if (chart) chart.destroy();
+      /* Chart.js global dark theme overrides */
+      Chart.defaults.color = "#8888AA";
+      Chart.defaults.borderColor = "#2A2A40";
 
-      chart = new Chart(ctx, {
+      ciChart = new Chart(ctx, {
         type: "line",
         data: {
           labels: labels.map((y) => "Year " + y),
           datasets: [
             {
+              /* Purple line — nominal (actual) balance */
               label: "Nominal Balance",
               data: nominal,
-              borderColor: getComputedStyle(document.documentElement).getPropertyValue("--clr-nominal").trim(),
-              backgroundColor: "rgba(26, 115, 232, 0.08)",
+              borderColor: "#6C63FF",
+              backgroundColor: "rgba(108, 99, 255, .08)",
               fill: true,
               tension: 0.3,
               pointRadius: 3,
+              pointBackgroundColor: "#6C63FF",
+              borderWidth: 2.5,
             },
             {
+              /* Teal line — inflation-adjusted balance */
               label: "Inflation-Adjusted",
               data: real,
-              borderColor: getComputedStyle(document.documentElement).getPropertyValue("--clr-inflation").trim(),
-              borderDash: [6, 3],
+              borderColor: "#00D4AA",
+              backgroundColor: "transparent",
               fill: false,
               tension: 0.3,
               pointRadius: 3,
+              pointBackgroundColor: "#00D4AA",
+              borderWidth: 2,
             },
             {
+              /* Amber dashed line — total contributions */
               label: "Total Contributions",
               data: contributions,
-              borderColor: getComputedStyle(document.documentElement).getPropertyValue("--clr-contributions").trim(),
-              borderDash: [2, 2],
+              borderColor: "#F5A623",
+              backgroundColor: "transparent",
               fill: false,
               tension: 0,
               pointRadius: 3,
+              pointBackgroundColor: "#F5A623",
+              borderDash: [6, 4],
+              borderWidth: 2,
             },
           ],
         },
@@ -385,15 +1458,29 @@
           interaction: { mode: "index", intersect: false },
           plugins: {
             tooltip: {
+              backgroundColor: "#1A1A28",
+              borderColor: "#2A2A40",
+              borderWidth: 1,
+              titleColor: "#EEEEF5",
+              bodyColor: "#8888AA",
               callbacks: {
                 label: (ctx) => ctx.dataset.label + ": " + fmt.format(ctx.parsed.y),
               },
             },
-            legend: { position: "bottom" },
+            legend: {
+              position: "bottom",
+              labels: { padding: 20, usePointStyle: true, pointStyle: "circle" },
+            },
           },
           scales: {
+            x: {
+              grid: { color: "rgba(42,42,64,.5)" },
+              ticks: { color: "#4A4A6A" },
+            },
             y: {
+              grid: { color: "rgba(42,42,64,.5)" },
               ticks: {
+                color: "#4A4A6A",
                 callback: (value) => fmt.format(value),
               },
             },
@@ -402,8 +1489,404 @@
       });
     }
 
-    /* Run calculation on page load so results appear immediately */
-    window.addEventListener("DOMContentLoaded", calculate);
+    /*
+     * ============================================================
+     *  RSU DECISION ENGINE
+     * ============================================================
+     */
+
+    /* Total number of question steps (excluding results) */
+    const RSU_TOTAL_STEPS = 6;
+    let rsuCurrentStep = 1;
+
+    /* Store user selections from toggle cards */
+    const rsuAnswers = {
+      holdPeriod: null,  /* "short" | "long" */
+      hasDebt: null,     /* "yes" | "no" */
+      hasEmergency: null /* "yes" | "no" */
+    };
+
+    /*
+     * Build the progress dots + connecting lines dynamically.
+     * 7 dots total: steps 1–6 + results (step 7).
+     */
+    function rsuBuildProgress() {
+      const container = document.getElementById("rsu-progress");
+      container.innerHTML = "";
+      const totalDots = RSU_TOTAL_STEPS + 1; /* +1 for results */
+
+      for (let i = 1; i <= totalDots; i++) {
+        /* Create dot */
+        const dot = document.createElement("div");
+        dot.className = "rsu-dot";
+        dot.id = "rsu-dot-" + i;
+        dot.textContent = i <= RSU_TOTAL_STEPS ? i : "✓";
+        container.appendChild(dot);
+
+        /* Create connecting line (between dots, not after the last) */
+        if (i < totalDots) {
+          const line = document.createElement("div");
+          line.className = "rsu-line";
+          line.id = "rsu-line-" + i;
+          container.appendChild(line);
+        }
+      }
+
+      /* Set initial state */
+      rsuUpdateProgress(1);
+    }
+
+    /*
+     * Update progress dots to reflect the current step.
+     * Steps before current = done (filled).
+     * Current step = active (ring).
+     * Steps after = default (empty ring / closure).
+     */
+    function rsuUpdateProgress(step) {
+      const totalDots = RSU_TOTAL_STEPS + 1;
+
+      for (let i = 1; i <= totalDots; i++) {
+        const dot = document.getElementById("rsu-dot-" + i);
+        dot.classList.remove("done", "active");
+
+        if (i < step) {
+          dot.classList.add("done");
+        } else if (i === step) {
+          dot.classList.add("active");
+        }
+      }
+
+      /* Fill lines up to (but not including) the current step */
+      for (let i = 1; i < totalDots; i++) {
+        const line = document.getElementById("rsu-line-" + i);
+        line.classList.toggle("filled", i < step);
+      }
+    }
+
+    /*
+     * Navigate to a specific step (show its card, hide others).
+     */
+    function rsuGoToStep(step) {
+      rsuCurrentStep = step;
+
+      /* Show/hide step cards */
+      document.querySelectorAll(".step-card").forEach((card) => {
+        const s = parseInt(card.dataset.step, 10);
+        card.classList.toggle("active", s === step);
+      });
+
+      rsuUpdateProgress(step);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    /* Next and Back button handlers */
+    function rsuNext(step) { rsuGoToStep(step); }
+    function rsuBack(step) { rsuGoToStep(step); }
+
+    /*
+     * Toggle card selection — mark one card as selected in a group.
+     * Each toggle group has a parent container; we deselect siblings.
+     */
+    function rsuToggle(btn) {
+      const parent = btn.parentElement;
+      parent.querySelectorAll(".toggle-card").forEach((c) => c.classList.remove("selected"));
+      btn.classList.add("selected");
+
+      /* Store the answer based on which group this belongs to */
+      const groupId = parent.id;
+      const value = btn.dataset.value;
+
+      if (groupId === "rsu-hold-toggle")      rsuAnswers.holdPeriod = value;
+      if (groupId === "rsu-debt-toggle")       rsuAnswers.hasDebt = value;
+      if (groupId === "rsu-emergency-toggle")  rsuAnswers.hasEmergency = value;
+    }
+
+    /*
+     * Update concentration slider label + color bar in real time.
+     */
+    function rsuUpdateConcentration() {
+      const val = parseInt(document.getElementById("rsu-concentration").value, 10);
+      document.getElementById("rsu-conc-label").textContent = val + "%";
+
+      const fill = document.getElementById("rsu-conc-fill");
+      fill.style.width = val + "%";
+
+      /* Color based on risk zone */
+      if (val > 20) {
+        fill.style.background = "var(--danger)";
+      } else if (val >= 10) {
+        fill.style.background = "var(--warning)";
+      } else {
+        fill.style.background = "var(--success)";
+      }
+    }
+
+    /*
+     * Map income tax bracket → long-term capital gains rate.
+     * 22–24% bracket → 15% LTCG
+     * 32–37% bracket → 20% LTCG
+     */
+    function getLTCGRate(bracket) {
+      return bracket <= 24 ? 15 : 20;
+    }
+
+    /*
+     * ==========================================================
+     *  RSU DECISION LOGIC
+     *  Priority-ordered checks (exactly as specified):
+     *    1. High interest debt → SELL
+     *    2. No emergency fund → SELL
+     *    3. Concentration > 20% → SELL PARTIAL
+     *    4. Held < 1 year, no flags → HOLD (wait for LTCG)
+     *    5. All clear → HOLD
+     * ==========================================================
+     */
+    function rsuEvaluate(inputs) {
+      const { rsuValue, holdPeriod, hasDebt, hasEmergency, concentration, taxBracket } = inputs;
+
+      const shortTermRate = taxBracket;
+      const ltcgRate = getLTCGRate(taxBracket);
+
+      /* Tax calculations based on holding period */
+      const taxIfSellNow  = holdPeriod === "short"
+        ? rsuValue * (shortTermRate / 100)
+        : rsuValue * (ltcgRate / 100);
+      const taxIfWaitLong = rsuValue * (ltcgRate / 100);
+      const taxSaving     = holdPeriod === "short"
+        ? (rsuValue * (shortTermRate / 100)) - taxIfWaitLong
+        : 0;
+
+      let verdict = "";
+      let headline = "";
+      const reasons = [];
+
+      /* Step 1 — High interest debt check */
+      if (hasDebt) {
+        verdict = "sell";
+        headline = "Sell your RSUs and pay off your high-interest debt first.";
+        reasons.push(
+          `You have debt above 7% interest. Paying it off is a <strong>guaranteed return</strong> that almost certainly beats holding a single stock.`
+        );
+        reasons.push(
+          `Your RSU holding of ${fmt.format(rsuValue)} can meaningfully reduce or eliminate that debt burden.`
+        );
+        if (concentration > 20) {
+          reasons.push(
+            `Your RSUs make up ${concentration}% of your net worth — well above the 20% concentration threshold, adding extra urgency to diversify.`
+          );
+        }
+        if (holdPeriod === "short") {
+          reasons.push(
+            `You'll pay short-term capital gains at your ${taxBracket}% rate, but the interest savings from eliminating high-rate debt typically outweigh the tax cost.`
+          );
+        }
+      }
+
+      /* Step 2 — Emergency fund check */
+      else if (!hasEmergency) {
+        verdict = "sell";
+        headline = "Sell your RSUs to build an emergency safety net.";
+        reasons.push(
+          `You don't have 3–6 months of expenses saved. A financial safety net is the foundation of any investment strategy.`
+        );
+        reasons.push(
+          `Selling ${fmt.format(rsuValue)} in RSUs lets you establish that cushion so a job loss or unexpected expense doesn't force you to sell at the worst time.`
+        );
+        if (concentration > 20) {
+          reasons.push(
+            `At ${concentration}% of your net worth in a single stock, you're also over-concentrated — selling solves two problems at once.`
+          );
+        }
+        reasons.push(
+          `Once your emergency fund is in place, you'll be in a stronger position to make investment decisions from a place of security, not stress.`
+        );
+      }
+
+      /* Step 3 — Concentration risk check */
+      else if (concentration > 20) {
+        verdict = "partial";
+        headline = "Sell enough to bring your concentration below 20% of your net worth.";
+        reasons.push(
+          `Your RSUs make up <strong>${concentration}%</strong> of your net worth — well above the 20% concentration threshold. Even great companies can have bad years.`
+        );
+        reasons.push(
+          `Consider selling enough to bring this holding to 10–15% of your net worth and diversifying the proceeds into a broad index fund.`
+        );
+        if (holdPeriod === "short") {
+          reasons.push(
+            `You'll pay short-term capital gains at ${taxBracket}%. If you can wait to cross the 1-year mark, you'd pay only ${ltcgRate}% — saving ${fmt.format(taxSaving)}. Weigh that against the concentration risk.`
+          );
+        } else {
+          reasons.push(
+            `Good news: you qualify for long-term capital gains at ${ltcgRate}%, which is lower than your ${taxBracket}% income rate — a better time to sell.`
+          );
+        }
+      }
+
+      /* Step 4 — Tax optimization (held < 1 year, no flags) */
+      else if (holdPeriod === "short") {
+        verdict = "hold";
+        headline = "Hold your RSUs until you qualify for long-term capital gains.";
+        reasons.push(
+          `You have no high-interest debt, a solid emergency fund, and your concentration is a manageable ${concentration}% — your financial foundation is strong.`
+        );
+        reasons.push(
+          `Selling now means paying <strong>${taxBracket}%</strong> in short-term capital gains. Waiting past the 1-year mark drops that to <strong>${ltcgRate}%</strong> — a potential saving of <strong>${fmt.format(taxSaving)}</strong>.`
+        );
+        reasons.push(
+          `Set a calendar reminder for when these RSUs cross the 1-year holding threshold, then reassess.`
+        );
+      }
+
+      /* Step 5 — Default: everything looks good */
+      else {
+        verdict = "hold";
+        headline = "Your position looks healthy — no urgency to sell.";
+        reasons.push(
+          `No high-interest debt, a funded emergency reserve, and only ${concentration}% concentration — you're in a strong financial position.`
+        );
+        reasons.push(
+          `You already qualify for long-term capital gains at ${ltcgRate}%, so whenever you do sell, you'll get favorable tax treatment.`
+        );
+        reasons.push(
+          `Revisit periodically. If the stock grows and concentration climbs above 20%, it may be time to trim the position.`
+        );
+      }
+
+      return { verdict, headline, reasons, taxIfSellNow, taxIfWaitLong, taxSaving, holdPeriod, concentration, shortTermRate, ltcgRate };
+    }
+
+    /*
+     * ==========================================================
+     *  RSU — RENDER RESULTS
+     *  Builds the full results screen dynamically and
+     *  navigates to step 7.
+     * ==========================================================
+     */
+    function rsuGetRecommendation() {
+      /* Gather all inputs */
+      const inputs = {
+        rsuValue:      parseFloat(document.getElementById("rsu-value").value) || 0,
+        holdPeriod:    rsuAnswers.holdPeriod || "long",
+        hasDebt:       rsuAnswers.hasDebt === "yes",
+        hasEmergency:  rsuAnswers.hasEmergency !== "no",  /* default to yes if unanswered */
+        concentration: parseInt(document.getElementById("rsu-concentration").value, 10),
+        taxBracket:    parseInt(document.getElementById("rsu-bracket").value, 10),
+      };
+
+      const r = rsuEvaluate(inputs);
+
+      /* Badge class & text */
+      let badgeClass, badgeText;
+      if (r.verdict === "sell")        { badgeClass = "sell";    badgeText = "Sell"; }
+      else if (r.verdict === "partial") { badgeClass = "partial"; badgeText = "Sell Partial"; }
+      else                              { badgeClass = "hold";    badgeText = "Hold"; }
+
+      /* Reason cards HTML */
+      const reasonsHTML = r.reasons.map((text) =>
+        `<div class="reason-card">${text}</div>`
+      ).join("");
+
+      /* Tax comparison table */
+      const taxTableHTML = `
+        <table class="tax-table">
+          <thead>
+            <tr>
+              <th></th>
+              <th>Sell Now</th>
+              <th>Wait for LTCG</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td style="color:var(--text-secondary)">Tax Rate</td>
+              <td>${r.holdPeriod === "short" ? r.shortTermRate : r.ltcgRate}%</td>
+              <td class="highlight-cell">${r.ltcgRate}%</td>
+            </tr>
+            <tr>
+              <td style="color:var(--text-secondary)">Tax Amount</td>
+              <td>${fmt.format(r.taxIfSellNow)}</td>
+              <td class="highlight-cell">${fmt.format(r.taxIfWaitLong)}</td>
+            </tr>
+            <tr>
+              <td style="color:var(--text-secondary)">You Save</td>
+              <td>—</td>
+              <td class="highlight-cell">${r.holdPeriod === "short" ? fmt.format(r.taxSaving) : "Already long-term ✓"}</td>
+            </tr>
+          </tbody>
+        </table>
+      `;
+
+      /* Concentration meter */
+      const conc = r.concentration;
+      let meterColor, meterTextClass;
+      if (conc > 20)       { meterColor = "var(--danger)";  meterTextClass = "style=\"color:var(--danger)\""; }
+      else if (conc >= 10) { meterColor = "var(--warning)"; meterTextClass = "style=\"color:var(--warning)\""; }
+      else                 { meterColor = "var(--success)"; meterTextClass = "style=\"color:var(--success)\""; }
+
+      const concMeterHTML = `
+        <div class="conc-meter">
+          <div class="conc-meter-label">
+            <span>Portfolio Concentration</span>
+            <span ${meterTextClass}>${conc}%</span>
+          </div>
+          <div class="conc-meter-bar">
+            <div class="conc-meter-fill" style="width:${Math.min(conc, 100)}%; background:${meterColor}"></div>
+          </div>
+        </div>
+      `;
+
+      /* Assemble the full results card */
+      document.getElementById("rsu-results-card").innerHTML = `
+        <div class="verdict-area">
+          <span class="verdict-badge ${badgeClass}">${badgeText}</span>
+          <div class="verdict-headline">${r.headline}</div>
+        </div>
+
+        ${reasonsHTML}
+
+        <div class="card-title" style="margin-top:1.5rem">Tax Comparison</div>
+        ${taxTableHTML}
+
+        ${concMeterHTML}
+
+        <button class="btn btn-ghost" onclick="rsuStartOver()">Start Over</button>
+      `;
+
+      /* Navigate to the results step */
+      rsuGoToStep(7);
+    }
+
+    /*
+     * Reset the RSU engine back to step 1.
+     */
+    function rsuStartOver() {
+      /* Clear toggle selections */
+      document.querySelectorAll("#tool-rsu .toggle-card").forEach((c) => c.classList.remove("selected"));
+      rsuAnswers.holdPeriod = null;
+      rsuAnswers.hasDebt = null;
+      rsuAnswers.hasEmergency = null;
+
+      /* Reset inputs to defaults */
+      document.getElementById("rsu-value").value = 50000;
+      document.getElementById("rsu-concentration").value = 25;
+      document.getElementById("rsu-bracket").value = "24";
+      rsuUpdateConcentration();
+
+      rsuGoToStep(1);
+    }
+
+    /*
+     * ============================================================
+     *  INITIALIZATION
+     *  Run on page load: calculate compound interest with defaults,
+     *  build RSU progress dots.
+     * ============================================================
+     */
+    window.addEventListener("DOMContentLoaded", () => {
+      ciCalculate();
+      rsuBuildProgress();
+    });
   </script>
 </body>
 </html>

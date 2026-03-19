@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Compound Interest Calculator</title>
+
+  <!-- Chart.js from CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- ==================== STYLES ==================== -->
+  <style>
+    /* -- Color palette & base tokens -- */
+    :root {
+      --clr-bg: #f0f4f8;
+      --clr-card: #ffffff;
+      --clr-primary: #1a73e8;
+      --clr-primary-light: #e8f0fe;
+      --clr-accent: #0d9488;
+      --clr-text: #1e293b;
+      --clr-text-muted: #64748b;
+      --clr-border: #e2e8f0;
+      --clr-nominal: #1a73e8;
+      --clr-inflation: #e85d1a;
+      --clr-contributions: #0d9488;
+      --radius: 12px;
+      --shadow: 0 1px 3px rgba(0,0,0,.08), 0 4px 12px rgba(0,0,0,.04);
+    }
+
+    /* -- Reset & base -- */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: var(--clr-bg);
+      color: var(--clr-text);
+      line-height: 1.6;
+      padding: 2rem 1rem;
+    }
+
+    h1 {
+      text-align: center;
+      font-size: 1.75rem;
+      margin-bottom: .25rem;
+    }
+
+    .subtitle {
+      text-align: center;
+      color: var(--clr-text-muted);
+      margin-bottom: 2rem;
+      font-size: .95rem;
+    }
+
+    /* -- Layout container -- */
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    /* -- Card style shared by form, results, and chart -- */
+    .card {
+      background: var(--clr-card);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .card h2 {
+      font-size: 1.1rem;
+      margin-bottom: 1rem;
+      color: var(--clr-primary);
+    }
+
+    /* -- Form grid -- */
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .form-group label {
+      font-size: .85rem;
+      font-weight: 600;
+      margin-bottom: .3rem;
+      color: var(--clr-text-muted);
+    }
+
+    .form-group input,
+    .form-group select {
+      padding: .55rem .75rem;
+      border: 1px solid var(--clr-border);
+      border-radius: 8px;
+      font-size: 1rem;
+      color: var(--clr-text);
+      transition: border-color .15s;
+    }
+
+    .form-group input:focus,
+    .form-group select:focus {
+      outline: none;
+      border-color: var(--clr-primary);
+      box-shadow: 0 0 0 3px var(--clr-primary-light);
+    }
+
+    /* -- Calculate button -- */
+    .btn {
+      grid-column: 1 / -1;
+      padding: .75rem;
+      background: var(--clr-primary);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background .15s;
+    }
+
+    .btn:hover { background: #1557b0; }
+
+    /* -- Results grid -- */
+    .results-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+
+    .result-item {
+      background: var(--clr-primary-light);
+      border-radius: 8px;
+      padding: 1rem;
+    }
+
+    .result-item .label {
+      font-size: .8rem;
+      font-weight: 600;
+      color: var(--clr-text-muted);
+      text-transform: uppercase;
+      letter-spacing: .03em;
+    }
+
+    .result-item .value {
+      font-size: 1.35rem;
+      font-weight: 700;
+      color: var(--clr-text);
+      margin-top: .2rem;
+    }
+
+    /* -- Chart canvas -- */
+    .chart-wrapper {
+      position: relative;
+      width: 100%;
+      max-height: 400px;
+    }
+
+    /* -- Mobile adjustments -- */
+    @media (max-width: 600px) {
+      .form-grid,
+      .results-grid {
+        grid-template-columns: 1fr;
+      }
+
+      h1 { font-size: 1.4rem; }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <h1>Compound Interest Calculator</h1>
+    <p class="subtitle">See how your money grows over time with the power of compounding.</p>
+
+    <!-- ==================== INPUT FORM ==================== -->
+    <div class="card">
+      <h2>Inputs</h2>
+      <div class="form-grid">
+        <div class="form-group">
+          <label for="principal">Initial Principal ($)</label>
+          <input type="number" id="principal" value="10000" min="0" step="100">
+        </div>
+
+        <div class="form-group">
+          <label for="rate">Annual Interest Rate (%)</label>
+          <input type="number" id="rate" value="7" min="0" step="0.1">
+        </div>
+
+        <div class="form-group">
+          <label for="years">Investment Period (Years)</label>
+          <input type="number" id="years" value="20" min="1" max="100" step="1">
+        </div>
+
+        <div class="form-group">
+          <label for="monthly">Monthly Contribution ($)</label>
+          <input type="number" id="monthly" value="200" min="0" step="50">
+        </div>
+
+        <div class="form-group">
+          <label for="frequency">Compounding Frequency</label>
+          <select id="frequency">
+            <option value="12" selected>Monthly</option>
+            <option value="4">Quarterly</option>
+            <option value="1">Annually</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="inflation">Inflation Rate (%)</label>
+          <input type="number" id="inflation" value="3" min="0" step="0.1">
+        </div>
+
+        <!-- Calculate button spans full width -->
+        <button class="btn" onclick="calculate()">Calculate</button>
+      </div>
+    </div>
+
+    <!-- ==================== OUTPUT / RESULTS ==================== -->
+    <div class="card" id="results-card" style="display:none;">
+      <h2>Results</h2>
+      <div class="results-grid">
+        <div class="result-item">
+          <div class="label">Final Balance</div>
+          <div class="value" id="out-balance">—</div>
+        </div>
+        <div class="result-item">
+          <div class="label">Total Contributions</div>
+          <div class="value" id="out-contributions">—</div>
+        </div>
+        <div class="result-item">
+          <div class="label">Total Interest Earned</div>
+          <div class="value" id="out-interest">—</div>
+        </div>
+        <div class="result-item">
+          <div class="label">Inflation-Adjusted Value</div>
+          <div class="value" id="out-real">—</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== CHART ==================== -->
+    <div class="card" id="chart-card" style="display:none;">
+      <h2>Growth Over Time</h2>
+      <div class="chart-wrapper">
+        <canvas id="growthChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== JAVASCRIPT ==================== -->
+  <script>
+    /* Currency formatter */
+    const fmt = new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
+      maximumFractionDigits: 0,
+    });
+
+    /* Reference to the Chart.js instance so we can update it */
+    let chart = null;
+
+    /**
+     * Core calculation logic.
+     * Simulates month-by-month growth, compounds at the chosen frequency,
+     * and tracks nominal balance, contributions, and inflation-adjusted value.
+     */
+    function calculate() {
+      // -- Read inputs --
+      const principal       = parseFloat(document.getElementById("principal").value) || 0;
+      const annualRate      = parseFloat(document.getElementById("rate").value) / 100;
+      const years           = parseInt(document.getElementById("years").value, 10) || 1;
+      const monthlyContrib  = parseFloat(document.getElementById("monthly").value) || 0;
+      const compFreq        = parseInt(document.getElementById("frequency").value, 10);
+      const inflationRate   = parseFloat(document.getElementById("inflation").value) / 100;
+
+      // Periodic interest rate per compounding period
+      const periodicRate = annualRate / compFreq;
+
+      // How many months between each compounding event
+      const monthsPerPeriod = 12 / compFreq;
+
+      // -- Simulation arrays (year-end snapshots, starting with year 0) --
+      const labels       = [0];
+      const nominalData  = [principal];
+      const realData     = [principal];
+      const contribData  = [principal];
+
+      let balance      = principal;
+      let totalContrib = principal;
+      const totalMonths = years * 12;
+
+      for (let month = 1; month <= totalMonths; month++) {
+        // Monthly contribution added at the start of each month
+        balance      += monthlyContrib;
+        totalContrib += monthlyContrib;
+
+        // Apply interest at compounding intervals
+        if (month % monthsPerPeriod === 0) {
+          balance *= (1 + periodicRate);
+        }
+
+        // Record year-end snapshot
+        if (month % 12 === 0) {
+          const yearNum = month / 12;
+          const realValue = balance / Math.pow(1 + inflationRate, yearNum);
+
+          labels.push(yearNum);
+          nominalData.push(Math.round(balance));
+          realData.push(Math.round(realValue));
+          contribData.push(Math.round(totalContrib));
+        }
+      }
+
+      // -- Derived results --
+      const finalBalance   = balance;
+      const totalInterest  = finalBalance - totalContrib;
+      const realFinal      = finalBalance / Math.pow(1 + inflationRate, years);
+
+      // -- Update the DOM --
+      document.getElementById("out-balance").textContent      = fmt.format(finalBalance);
+      document.getElementById("out-contributions").textContent = fmt.format(totalContrib);
+      document.getElementById("out-interest").textContent      = fmt.format(totalInterest);
+      document.getElementById("out-real").textContent          = fmt.format(realFinal);
+
+      document.getElementById("results-card").style.display = "block";
+      document.getElementById("chart-card").style.display   = "block";
+
+      // -- Render / update Chart.js chart --
+      renderChart(labels, nominalData, realData, contribData);
+    }
+
+    /**
+     * Draws (or updates) the Chart.js line chart with three datasets:
+     *   1. Nominal growth
+     *   2. Inflation-adjusted growth
+     *   3. Total contributions
+     */
+    function renderChart(labels, nominal, real, contributions) {
+      const ctx = document.getElementById("growthChart").getContext("2d");
+
+      // Destroy previous chart instance if it exists
+      if (chart) chart.destroy();
+
+      chart = new Chart(ctx, {
+        type: "line",
+        data: {
+          labels: labels.map((y) => "Year " + y),
+          datasets: [
+            {
+              label: "Nominal Balance",
+              data: nominal,
+              borderColor: getComputedStyle(document.documentElement).getPropertyValue("--clr-nominal").trim(),
+              backgroundColor: "rgba(26, 115, 232, 0.08)",
+              fill: true,
+              tension: 0.3,
+              pointRadius: 3,
+            },
+            {
+              label: "Inflation-Adjusted",
+              data: real,
+              borderColor: getComputedStyle(document.documentElement).getPropertyValue("--clr-inflation").trim(),
+              borderDash: [6, 3],
+              fill: false,
+              tension: 0.3,
+              pointRadius: 3,
+            },
+            {
+              label: "Total Contributions",
+              data: contributions,
+              borderColor: getComputedStyle(document.documentElement).getPropertyValue("--clr-contributions").trim(),
+              borderDash: [2, 2],
+              fill: false,
+              tension: 0,
+              pointRadius: 3,
+            },
+          ],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: true,
+          interaction: { mode: "index", intersect: false },
+          plugins: {
+            tooltip: {
+              callbacks: {
+                label: (ctx) => ctx.dataset.label + ": " + fmt.format(ctx.parsed.y),
+              },
+            },
+            legend: { position: "bottom" },
+          },
+          scales: {
+            y: {
+              ticks: {
+                callback: (value) => fmt.format(value),
+              },
+            },
+          },
+        },
+      });
+    }
+
+    /* Run calculation on page load so results appear immediately */
+    window.addEventListener("DOMContentLoaded", calculate);
+  </script>
+</body>
+</html>

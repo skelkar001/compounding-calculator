@@ -1045,6 +1045,165 @@
 
     /*
      * ==========================================================
+     *  MONTE CARLO SIMULATION — Shared styles
+     * ==========================================================
+     */
+
+    /* "See 1,000 Simulated Futures" trigger button */
+    .mc-trigger-btn {
+      width: 100%;
+      padding: .85rem;
+      background: transparent;
+      border: 2px solid transparent;
+      border-radius: var(--radius-sm);
+      font-family: inherit;
+      font-size: .95rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all .25s ease;
+      color: var(--text-secondary);
+      margin-top: 1rem;
+      /* Gradient border trick: border-image on the container */
+      background-image: linear-gradient(var(--surface), var(--surface)),
+                        linear-gradient(135deg, var(--primary), var(--success));
+      background-origin: border-box;
+      background-clip: padding-box, border-box;
+    }
+
+    .mc-trigger-btn:hover {
+      transform: scale(1.02);
+      filter: brightness(1.15);
+      color: var(--text);
+    }
+
+    .mc-trigger-btn:active {
+      transform: scale(.98);
+    }
+
+    .mc-trigger-btn.active-toggle {
+      background-image: linear-gradient(var(--elevated), var(--elevated)),
+                        linear-gradient(135deg, var(--primary), var(--success));
+      color: var(--primary);
+    }
+
+    /* Loading bar inside the trigger button */
+    .mc-loading-bar {
+      height: 3px;
+      background: var(--border);
+      border-radius: 2px;
+      margin-top: .6rem;
+      overflow: hidden;
+    }
+
+    .mc-loading-bar .mc-loading-fill {
+      height: 100%;
+      width: 0%;
+      border-radius: 2px;
+      background: linear-gradient(90deg, var(--primary), var(--success));
+      transition: width .8s ease;
+    }
+
+    /* The simulation results section */
+    .mc-section {
+      margin-top: 32px;
+      animation: fadeUp .5s ease;
+    }
+
+    .mc-section .mc-header {
+      text-align: center;
+      margin-bottom: 1.5rem;
+    }
+
+    .mc-section .mc-header h3 {
+      font-size: .85rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      color: var(--primary);
+      margin-bottom: .35rem;
+    }
+
+    .mc-section .mc-header p {
+      font-size: .85rem;
+      color: var(--text-muted);
+    }
+
+    /* Fan chart container */
+    .mc-chart-wrap {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .mc-chart-container {
+      position: relative;
+      width: 100%;
+      height: 280px;
+    }
+
+    /* Probability summary 2x2 grid */
+    .mc-prob-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .mc-prob-card {
+      background: var(--elevated);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 1.1rem;
+      text-align: center;
+    }
+
+    .mc-prob-card .mc-prob-label {
+      font-size: .7rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+      color: var(--text-muted);
+      margin-bottom: .35rem;
+    }
+
+    .mc-prob-card .mc-prob-value {
+      font-size: 1.5rem;
+      font-weight: 800;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .mc-prob-card .mc-prob-sub {
+      font-size: .75rem;
+      color: var(--text-muted);
+      margin-top: .15rem;
+    }
+
+    /* Monte Carlo disclaimer card */
+    .mc-disclaimer {
+      background: var(--elevated);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: .85rem 1rem;
+      font-size: .78rem;
+      color: var(--text-muted);
+      line-height: 1.5;
+      text-align: center;
+    }
+
+    @media (max-width: 600px) {
+      .mc-prob-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .mc-chart-container {
+        height: 220px;
+      }
+    }
+
+    /*
+     * ==========================================================
      *  FOOTER
      * ==========================================================
      */
@@ -1389,6 +1548,26 @@
         <div class="card" id="rsu-results-card">
           <!-- Filled dynamically by JS -->
         </div>
+        <!-- Monte Carlo simulation section — hidden until user clicks trigger -->
+        <div id="rsu-mc-section" class="mc-section hidden">
+          <div class="mc-header">
+            <h3>What Could Happen? 1,000 Simulated Futures</h3>
+            <p>Comparing "Sell &amp; invest in diversified market" vs "Hold single stock" over 10 years.</p>
+          </div>
+          <div class="mc-chart-wrap">
+            <div class="mc-chart-container">
+              <canvas id="rsu-mc-chart"></canvas>
+            </div>
+          </div>
+          <div class="mc-prob-grid" id="rsu-mc-prob-grid">
+            <!-- Filled dynamically -->
+          </div>
+          <div class="mc-disclaimer">
+            Monte Carlo simulations use random sampling to model uncertainty.
+            Past market behavior does not guarantee future results.
+            1,000 simulations were run using the parameters above.
+          </div>
+        </div>
       </div>
     </section>
 
@@ -1545,6 +1724,26 @@
         <div class="card" id="al-results-card">
           <!-- Filled dynamically by JS -->
         </div>
+        <!-- Monte Carlo simulation section — hidden until user clicks trigger -->
+        <div id="al-mc-section" class="mc-section hidden">
+          <div class="mc-header">
+            <h3>What Could Happen? 1,000 Simulated Futures</h3>
+            <p id="al-mc-subtitle">Comparing recommended path vs alternative over your loan term.</p>
+          </div>
+          <div class="mc-chart-wrap">
+            <div class="mc-chart-container">
+              <canvas id="al-mc-chart"></canvas>
+            </div>
+          </div>
+          <div class="mc-prob-grid" id="al-mc-prob-grid">
+            <!-- Filled dynamically -->
+          </div>
+          <div class="mc-disclaimer">
+            Monte Carlo simulations use random sampling to model uncertainty.
+            Past market behavior does not guarantee future results.
+            1,000 simulations were run using the parameters above.
+          </div>
+        </div>
       </div>
     </section>
   </main>
@@ -1553,7 +1752,7 @@
        FOOTER
        ========================================================== -->
   <footer class="site-footer">
-    <div>For educational purposes only. Not financial advice. Consult a qualified financial advisor before making any financial decisions.</div>
+    <div>For educational purposes only. Not financial advice. Monte Carlo simulations model uncertainty but cannot predict actual outcomes. Consult a qualified financial advisor before making any financial decisions.</div>
     <div class="credit">Built with Claude Code</div>
   </footer>
 
@@ -2156,8 +2355,20 @@
 
         ${concMeterHTML}
 
+        <button class="mc-trigger-btn" id="rsu-mc-trigger" onclick="rsuToggleMC()">
+          ∿ See 1,000 Simulated Futures
+          <div class="mc-loading-bar hidden" id="rsu-mc-loading"><div class="mc-loading-fill" id="rsu-mc-loading-fill"></div></div>
+        </button>
+
         <button class="btn btn-ghost" onclick="rsuStartOver()">Start Over</button>
       `;
+
+      /* Reset MC state when new recommendation is generated */
+      rsuMCGenerated = false;
+      document.getElementById("rsu-mc-section").classList.add("hidden");
+
+      /* Store the evaluated result for MC to use later */
+      rsuLastResult = { inputs, r };
 
       /* Navigate to the results step */
       rsuGoToStep(7);
@@ -2635,8 +2846,20 @@
 
         ${taxNoteHTML}
 
+        <button class="mc-trigger-btn" id="al-mc-trigger" onclick="alToggleMC()">
+          ∿ See 1,000 Simulated Futures
+          <div class="mc-loading-bar hidden" id="al-mc-loading"><div class="mc-loading-fill" id="al-mc-loading-fill"></div></div>
+        </button>
+
         <button class="btn btn-ghost" onclick="alStartOver()">Start Over</button>
       `;
+
+      /* Reset MC state when new recommendation is generated */
+      alMCGenerated = false;
+      document.getElementById("al-mc-section").classList.add("hidden");
+
+      /* Store evaluated result for MC to use later */
+      alLastResult = { inputs, r };
 
       /* Navigate to results step */
       alGoToStep(6);
@@ -2712,6 +2935,567 @@
       alUpdateReturnSlider();
 
       alGoToStep(1);
+    }
+
+    /*
+     * ============================================================
+     *  MONTE CARLO SIMULATION ENGINE
+     *  Shared helpers and per-tool simulation runners.
+     *  1,000 simulated futures using Box-Muller normal distribution.
+     * ============================================================
+     */
+
+    /* State variables for Monte Carlo */
+    let rsuMCGenerated = false;
+    let alMCGenerated  = false;
+    let rsuLastResult  = null;
+    let alLastResult   = null;
+    let rsuMCChart     = null;
+    let alMCChart      = null;
+
+    /* Box-Muller transform — returns a normally distributed random number */
+    function randomNormal(mean, stdDev) {
+      let u1 = 0, u2 = 0;
+      while (u1 === 0) u1 = Math.random();
+      while (u2 === 0) u2 = Math.random();
+      const z = Math.sqrt(-2.0 * Math.log(u1)) * Math.cos(2.0 * Math.PI * u2);
+      return mean + stdDev * z;
+    }
+
+    /* Get the p-th percentile from a SORTED array (0–100) */
+    function percentile(sorted, p) {
+      const idx = (p / 100) * (sorted.length - 1);
+      const lo = Math.floor(idx);
+      const hi = Math.ceil(idx);
+      if (lo === hi) return sorted[lo];
+      return sorted[lo] + (sorted[hi] - sorted[lo]) * (idx - lo);
+    }
+
+    /*
+     * Build a fan-chart dataset config for Chart.js.
+     * Takes percentile data for one path and returns an array of datasets.
+     */
+    function buildFanDatasets(label, percData, color, fillColor) {
+      /* percData = { p10:[], p25:[], p50:[], p75:[], p90:[] } */
+      return [
+        /* P10–P90 band (very light fill) */
+        {
+          label: `${label} 10th`,
+          data: percData.p10,
+          borderColor: color + "33",
+          borderWidth: 1,
+          borderDash: [4, 4],
+          pointRadius: 0,
+          fill: false,
+        },
+        {
+          label: `${label} 90th`,
+          data: percData.p90,
+          borderColor: color + "33",
+          borderWidth: 1,
+          borderDash: [4, 4],
+          pointRadius: 0,
+          fill: "-1",
+          backgroundColor: fillColor + "0D",
+        },
+        /* P25–P75 band (medium fill) */
+        {
+          label: `${label} 25th`,
+          data: percData.p25,
+          borderColor: color + "66",
+          borderWidth: 1,
+          pointRadius: 0,
+          fill: false,
+        },
+        {
+          label: `${label} 75th`,
+          data: percData.p75,
+          borderColor: color + "66",
+          borderWidth: 1,
+          pointRadius: 0,
+          fill: "-1",
+          backgroundColor: fillColor + "1A",
+        },
+        /* Median line (solid) */
+        {
+          label: `${label} Median`,
+          data: percData.p50,
+          borderColor: color,
+          borderWidth: 2.5,
+          pointRadius: 3,
+          pointBackgroundColor: color,
+          fill: false,
+        },
+      ];
+    }
+
+    /*
+     * Render a fan chart into a canvas element.
+     * labels = x-axis labels, pathA/pathB = { p10, p25, p50, p75, p90 }
+     */
+    function renderFanChart(canvasId, labels, pathA, pathB, pathALabel, pathBLabel, existingChart) {
+      if (existingChart) existingChart.destroy();
+
+      const ctx = document.getElementById(canvasId).getContext("2d");
+      const purple = "#6C63FF";
+      const amber  = "#F5A623";
+
+      const datasets = [
+        ...buildFanDatasets(pathALabel, pathA, purple, purple),
+        ...buildFanDatasets(pathBLabel, pathB, amber, amber),
+      ];
+
+      return new Chart(ctx, {
+        type: "line",
+        data: { labels, datasets },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          interaction: { mode: "index", intersect: false },
+          plugins: {
+            legend: {
+              display: true,
+              labels: {
+                color: "#8A8A9A",
+                font: { family: "Inter", size: 11 },
+                filter: (item) => item.text.includes("Median"),
+                usePointStyle: true,
+              },
+            },
+            tooltip: {
+              backgroundColor: "#1A1A28",
+              titleColor: "#E8E8ED",
+              bodyColor: "#C0C0CC",
+              borderColor: "#2A2A40",
+              borderWidth: 1,
+              callbacks: {
+                label: (ctx) => `${ctx.dataset.label}: ${fmt.format(Math.round(ctx.parsed.y))}`,
+              },
+            },
+          },
+          scales: {
+            x: {
+              ticks: { color: "#8A8A9A", font: { family: "Inter", size: 11 } },
+              grid: { color: "#2A2A4022" },
+            },
+            y: {
+              ticks: {
+                color: "#8A8A9A",
+                font: { family: "Inter", size: 11 },
+                callback: (v) => "$" + (v >= 1000 ? (v / 1000).toFixed(0) + "k" : v),
+              },
+              grid: { color: "#2A2A4044" },
+            },
+          },
+        },
+      });
+    }
+
+    /* Render the 4 probability summary cards into a grid container */
+    function renderProbCards(containerId, winPct, medianDiff, bestCase, worstCase, recLabel, altLabel) {
+      const container = document.getElementById(containerId);
+      const betterLabel = medianDiff >= 0 ? recLabel : altLabel;
+      const diffAbs = Math.abs(medianDiff);
+
+      container.innerHTML = `
+        <div class="mc-prob-card">
+          <div class="mc-prob-value" style="color:#00D4AA">${winPct.toFixed(0)}%</div>
+          <div class="mc-prob-label">${recLabel} wins</div>
+        </div>
+        <div class="mc-prob-card">
+          <div class="mc-prob-value" style="color:#6C63FF">${fmt.format(Math.round(diffAbs))}</div>
+          <div class="mc-prob-label">Median ${betterLabel} edge</div>
+        </div>
+        <div class="mc-prob-card">
+          <div class="mc-prob-value" style="color:#F5A623">${fmt.format(Math.round(bestCase))}</div>
+          <div class="mc-prob-label">Best case (90th pctl)</div>
+        </div>
+        <div class="mc-prob-card">
+          <div class="mc-prob-value" style="color:#FF4757">${fmt.format(Math.round(worstCase))}</div>
+          <div class="mc-prob-label">Worst case (10th pctl)</div>
+        </div>
+      `;
+    }
+
+    /*
+     * ---------------------------------------------------------
+     *  RSU MONTE CARLO
+     *  Path A: Sell & invest in diversified market (mean 7%, stdDev 15%)
+     *  Path B: Hold single stock (mean 8%, stdDev 30%)
+     *  Horizon: 10 years, snapshots at years [0,1,2,3,5,7,10]
+     * ---------------------------------------------------------
+     */
+    function rsuRunSimulation() {
+      const { inputs, r } = rsuLastResult;
+      const startValue = inputs.rsuValue;
+      const taxNow  = r.taxIfSellNow;
+      /* After-tax proceeds if selling now */
+      const afterTax = startValue - taxNow;
+
+      const RUNS = 1000;
+      const snapYears = [0, 1, 2, 3, 5, 7, 10];
+
+      /* Collect end-values at each snapshot for each path */
+      const pathAValues = snapYears.map(() => []);
+      const pathBValues = snapYears.map(() => []);
+
+      for (let run = 0; run < RUNS; run++) {
+        /* Path A — sell, invest in diversified market */
+        let valA = afterTax;
+        /* Path B — hold single stock */
+        let valB = startValue;
+
+        let yearIdx = 0;
+        /* Record year 0 */
+        if (snapYears[yearIdx] === 0) {
+          pathAValues[yearIdx].push(valA);
+          pathBValues[yearIdx].push(valB);
+          yearIdx++;
+        }
+
+        for (let year = 1; year <= 10; year++) {
+          const retA = randomNormal(0.07, 0.15);
+          const retB = randomNormal(0.08, 0.30);
+          valA *= (1 + retA);
+          valB *= (1 + retB);
+          /* Clamp to zero — can't go negative */
+          if (valA < 0) valA = 0;
+          if (valB < 0) valB = 0;
+
+          if (yearIdx < snapYears.length && snapYears[yearIdx] === year) {
+            pathAValues[yearIdx].push(valA);
+            pathBValues[yearIdx].push(valB);
+            yearIdx++;
+          }
+        }
+      }
+
+      /* Sort each snapshot's values and compute percentiles */
+      const percKeys = ["p10", "p25", "p50", "p75", "p90"];
+      const percVals = [10, 25, 50, 75, 90];
+      const pathAPerc = { p10: [], p25: [], p50: [], p75: [], p90: [] };
+      const pathBPerc = { p10: [], p25: [], p50: [], p75: [], p90: [] };
+
+      for (let i = 0; i < snapYears.length; i++) {
+        pathAValues[i].sort((a, b) => a - b);
+        pathBValues[i].sort((a, b) => a - b);
+        for (let k = 0; k < percKeys.length; k++) {
+          pathAPerc[percKeys[k]].push(percentile(pathAValues[i], percVals[k]));
+          pathBPerc[percKeys[k]].push(percentile(pathBValues[i], percVals[k]));
+        }
+      }
+
+      /* Render fan chart */
+      const labels = snapYears.map(y => y === 0 ? "Now" : `Year ${y}`);
+      rsuMCChart = renderFanChart(
+        "rsu-mc-chart", labels,
+        pathAPerc, pathBPerc,
+        "Sell & Invest", "Hold Stock",
+        rsuMCChart
+      );
+
+      /* Probability stats — compare final year (index 6 = year 10) */
+      const finalA = pathAValues[snapYears.length - 1];
+      const finalB = pathBValues[snapYears.length - 1];
+      let wins = 0;
+      const diffs = [];
+      for (let i = 0; i < RUNS; i++) {
+        if (finalA[i] >= finalB[i]) wins++;
+        diffs.push(finalA[i] - finalB[i]);
+      }
+      diffs.sort((a, b) => a - b);
+
+      const winPct     = (wins / RUNS) * 100;
+      const medianDiff = percentile(diffs, 50);
+      const bestCase   = percentile(diffs, 90);
+      const worstCase  = percentile(diffs, 10);
+
+      renderProbCards("rsu-mc-prob-grid", winPct, medianDiff, bestCase, worstCase, "Sell & Invest", "Hold Stock");
+    }
+
+    /* Toggle handler for RSU Monte Carlo button */
+    function rsuToggleMC() {
+      const section = document.getElementById("rsu-mc-section");
+      const btn     = document.getElementById("rsu-mc-trigger");
+      const loading = document.getElementById("rsu-mc-loading");
+      const fill    = document.getElementById("rsu-mc-loading-fill");
+
+      if (rsuMCGenerated) {
+        /* Toggle visibility */
+        section.classList.toggle("hidden");
+        btn.textContent = section.classList.contains("hidden")
+          ? "∿ See 1,000 Simulated Futures"
+          : "∿ Hide Simulation";
+        return;
+      }
+
+      /* Show loading bar */
+      loading.classList.remove("hidden");
+      fill.style.width = "0%";
+      btn.disabled = true;
+
+      /* Animate loading bar */
+      let progress = 0;
+      const loadInterval = setInterval(() => {
+        progress += Math.random() * 15;
+        if (progress > 90) progress = 90;
+        fill.style.width = progress + "%";
+      }, 100);
+
+      /* Run simulation after a brief delay to let loading bar render */
+      setTimeout(() => {
+        rsuRunSimulation();
+
+        clearInterval(loadInterval);
+        fill.style.width = "100%";
+
+        setTimeout(() => {
+          loading.classList.add("hidden");
+          btn.disabled = false;
+          btn.textContent = "∿ Hide Simulation";
+          section.classList.remove("hidden");
+          rsuMCGenerated = true;
+        }, 300);
+      }, 400);
+    }
+
+    /*
+     * ---------------------------------------------------------
+     *  AUTO LOAN MONTE CARLO
+     *  Path A: Recommended strategy
+     *  Path B: Alternative strategy
+     *  Horizon: loan term + 24 months, snapshots every 6 months
+     * ---------------------------------------------------------
+     */
+    function alRunSimulation() {
+      const { inputs, r } = alLastResult;
+      const { balance, emi, loanRate, availableCash, expectedReturn } = inputs;
+      const totalMonths = r.emiMonths + 24;  /* loan term + 2 extra years */
+      const RUNS = 1000;
+
+      /* Build snapshot months: every 6 months */
+      const snapMonths = [0];
+      for (let m = 6; m <= totalMonths; m += 6) snapMonths.push(m);
+      if (snapMonths[snapMonths.length - 1] !== totalMonths) snapMonths.push(totalMonths);
+
+      const pathAValues = snapMonths.map(() => []);
+      const pathBValues = snapMonths.map(() => []);
+
+      const monthlyLoanRate = loanRate / 100 / 12;
+
+      for (let run = 0; run < RUNS; run++) {
+        /*
+         * Path A: Recommended strategy
+         *   - payoff/accelerate: use cash to pay loan, invest freed EMI
+         *   - invest: invest cash, keep paying EMI
+         *   - follow-emi: keep EMI, hold cash in savings (low return)
+         *
+         * Path B: Opposite strategy
+         */
+        let netA = 0, netB = 0;
+        let loanBalA = balance, loanBalB = balance;
+        let investA = 0, investB = 0;
+
+        /* Set up starting conditions based on verdict */
+        if (r.verdict === "payoff") {
+          /* Path A: pay off loan immediately */
+          loanBalA = 0;
+          investA  = availableCash - balance;
+          if (investA < 0) investA = 0;
+          /* Path B: invest the cash, keep paying loan */
+          investB  = availableCash;
+        } else if (r.verdict === "accelerate") {
+          /* Path A: lump sum payment + extra monthly */
+          loanBalA = Math.max(0, balance - availableCash);
+          /* Path B: invest the cash, regular EMI */
+          investB  = availableCash;
+        } else if (r.verdict === "invest") {
+          /* Path A: invest cash, keep paying EMI */
+          investA  = availableCash;
+          /* Path B: use cash to pay down loan */
+          loanBalB = Math.max(0, balance - availableCash);
+        } else {
+          /* follow-emi: Path A = keep cash in savings, Path B = pay down loan */
+          investA  = availableCash;
+          loanBalB = Math.max(0, balance - availableCash);
+        }
+
+        let snapIdx = 0;
+        /* Record month 0 */
+        if (snapMonths[snapIdx] === 0) {
+          /* Net worth = investments - loan balance */
+          pathAValues[snapIdx].push(investA - loanBalA);
+          pathBValues[snapIdx].push(investB - loanBalB);
+          snapIdx++;
+        }
+
+        for (let m = 1; m <= totalMonths; m++) {
+          /* Random monthly market return */
+          const monthlyReturn = randomNormal(expectedReturn / 100 / 12, 0.15 / Math.sqrt(12));
+          const savingsReturn = randomNormal(0.04 / 12, 0.005 / Math.sqrt(12));
+
+          /* --- Path A --- */
+          if (loanBalA > 0) {
+            const intA = loanBalA * monthlyLoanRate;
+            let payA = emi;
+            if (r.verdict === "accelerate") payA = emi + r.suggestedExtra;
+            loanBalA = loanBalA + intA - payA;
+            if (loanBalA <= 0) {
+              /* Loan paid off — start investing freed payment */
+              loanBalA = 0;
+            }
+          } else {
+            /* Loan is paid off — invest what was the EMI */
+            investA += emi;
+          }
+          /* Grow investments */
+          if (r.verdict === "invest" || r.verdict === "follow-emi") {
+            investA *= (1 + (r.verdict === "follow-emi" ? savingsReturn : monthlyReturn));
+          } else {
+            investA *= (1 + monthlyReturn);
+          }
+          if (investA < 0) investA = 0;
+
+          /* --- Path B --- */
+          if (loanBalB > 0) {
+            const intB = loanBalB * monthlyLoanRate;
+            let payB = emi;
+            if (r.verdict === "invest" || r.verdict === "follow-emi") payB = emi + r.suggestedExtra;
+            loanBalB = loanBalB + intB - payB;
+            if (loanBalB <= 0) {
+              loanBalB = 0;
+            }
+          } else {
+            investB += emi;
+          }
+          if (r.verdict === "payoff" || r.verdict === "accelerate") {
+            investB *= (1 + monthlyReturn);
+          } else {
+            investB *= (1 + monthlyReturn);
+          }
+          if (investB < 0) investB = 0;
+
+          /* Record snapshot */
+          if (snapIdx < snapMonths.length && snapMonths[snapIdx] === m) {
+            pathAValues[snapIdx].push(investA - Math.max(0, loanBalA));
+            pathBValues[snapIdx].push(investB - Math.max(0, loanBalB));
+            snapIdx++;
+          }
+        }
+      }
+
+      /* Compute percentiles */
+      const percKeys = ["p10", "p25", "p50", "p75", "p90"];
+      const percVals = [10, 25, 50, 75, 90];
+      const pathAPerc = { p10: [], p25: [], p50: [], p75: [], p90: [] };
+      const pathBPerc = { p10: [], p25: [], p50: [], p75: [], p90: [] };
+
+      for (let i = 0; i < snapMonths.length; i++) {
+        pathAValues[i].sort((a, b) => a - b);
+        pathBValues[i].sort((a, b) => a - b);
+        for (let k = 0; k < percKeys.length; k++) {
+          pathAPerc[percKeys[k]].push(percentile(pathAValues[i], percVals[k]));
+          pathBPerc[percKeys[k]].push(percentile(pathBValues[i], percVals[k]));
+        }
+      }
+
+      /* Build labels */
+      const labels = snapMonths.map(m => {
+        if (m === 0) return "Now";
+        if (m < 12) return `${m}mo`;
+        const yr = Math.floor(m / 12);
+        const mo = m % 12;
+        return mo === 0 ? `${yr}yr` : `${yr}yr ${mo}mo`;
+      });
+
+      /* Determine path labels */
+      const recLabels = {
+        payoff:      "Pay Off Loan",
+        accelerate:  "Accelerate Payments",
+        invest:      "Invest Cash",
+        "follow-emi":"Follow EMI",
+      };
+      const altLabels = {
+        payoff:      "Invest Instead",
+        accelerate:  "Invest Instead",
+        invest:      "Pay Down Loan",
+        "follow-emi":"Pay Down Loan",
+      };
+      const recLabel = recLabels[r.verdict] || "Recommended";
+      const altLabel = altLabels[r.verdict] || "Alternative";
+
+      /* Update subtitle */
+      document.getElementById("al-mc-subtitle").textContent =
+        `Comparing "${recLabel}" vs "${altLabel}" over ${Math.round(totalMonths / 12)} years.`;
+
+      /* Render chart */
+      alMCChart = renderFanChart(
+        "al-mc-chart", labels,
+        pathAPerc, pathBPerc,
+        recLabel, altLabel,
+        alMCChart
+      );
+
+      /* Probability stats — compare final snapshot */
+      const finalA = pathAValues[snapMonths.length - 1];
+      const finalB = pathBValues[snapMonths.length - 1];
+      let wins = 0;
+      const diffs = [];
+      for (let i = 0; i < RUNS; i++) {
+        if (finalA[i] >= finalB[i]) wins++;
+        diffs.push(finalA[i] - finalB[i]);
+      }
+      diffs.sort((a, b) => a - b);
+
+      const winPct     = (wins / RUNS) * 100;
+      const medianDiff = percentile(diffs, 50);
+      const bestCase   = percentile(diffs, 90);
+      const worstCase  = percentile(diffs, 10);
+
+      renderProbCards("al-mc-prob-grid", winPct, medianDiff, bestCase, worstCase, recLabel, altLabel);
+    }
+
+    /* Toggle handler for Auto Loan Monte Carlo button */
+    function alToggleMC() {
+      const section = document.getElementById("al-mc-section");
+      const btn     = document.getElementById("al-mc-trigger");
+      const loading = document.getElementById("al-mc-loading");
+      const fill    = document.getElementById("al-mc-loading-fill");
+
+      if (alMCGenerated) {
+        section.classList.toggle("hidden");
+        btn.textContent = section.classList.contains("hidden")
+          ? "∿ See 1,000 Simulated Futures"
+          : "∿ Hide Simulation";
+        return;
+      }
+
+      /* Show loading bar */
+      loading.classList.remove("hidden");
+      fill.style.width = "0%";
+      btn.disabled = true;
+
+      let progress = 0;
+      const loadInterval = setInterval(() => {
+        progress += Math.random() * 15;
+        if (progress > 90) progress = 90;
+        fill.style.width = progress + "%";
+      }, 100);
+
+      setTimeout(() => {
+        alRunSimulation();
+
+        clearInterval(loadInterval);
+        fill.style.width = "100%";
+
+        setTimeout(() => {
+          loading.classList.add("hidden");
+          btn.disabled = false;
+          btn.textContent = "∿ Hide Simulation";
+          section.classList.remove("hidden");
+          alMCGenerated = true;
+        }, 300);
+      }, 400);
     }
 
     /*

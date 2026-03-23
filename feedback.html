@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+
+  <!-- ==================== GOOGLE ANALYTICS ==================== -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-0GQCEBE33H"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-0GQCEBE33H');
+  </script>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Feedback — BucketsWealth</title>
+
+  <!-- Inter font — same as main site -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    /*
+     * ==========================================================
+     *  DESIGN TOKENS — same as main index.html
+     * ==========================================================
+     */
+    :root {
+      --bg:            #0A0A0F;
+      --surface:       #12121A;
+      --elevated:      #1A1A28;
+      --border:        #2A2A40;
+      --primary:       #6C63FF;
+      --success:       #00D4AA;
+      --warning:       #F5A623;
+      --text:          #EEEEF5;
+      --text-secondary:#8888AA;
+      --radius:        12px;
+    }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /*
+     * ==========================================================
+     *  HEADER — same dark bar as main site
+     * ==========================================================
+     */
+    .site-header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 1rem 1.5rem;
+      display: flex;
+      justify-content: center;
+    }
+
+    .header-inner {
+      width: 100%;
+      max-width: 720px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .logo {
+      font-size: 1.2rem;
+      font-weight: 800;
+      letter-spacing: -.02em;
+      color: var(--text);
+      text-decoration: none;
+    }
+    .logo span {
+      color: var(--primary);
+    }
+
+    /* "Back to Tools" link */
+    .back-link {
+      color: var(--text-secondary);
+      text-decoration: none;
+      font-size: .85rem;
+      font-weight: 500;
+      transition: color .2s ease;
+    }
+    .back-link:hover {
+      color: var(--text);
+    }
+
+    /*
+     * ==========================================================
+     *  HERO SECTION — centered heading + subtext
+     * ==========================================================
+     */
+    .hero {
+      text-align: center;
+      max-width: 860px;
+      margin: 3rem auto 0;
+      padding: 0 1.25rem;
+    }
+
+    .hero h1 {
+      font-size: 1.75rem;
+      font-weight: 700;
+      margin-bottom: .5rem;
+    }
+
+    .hero p {
+      color: var(--text-secondary);
+      font-size: 1rem;
+      margin-bottom: 1.25rem;
+    }
+
+    /* Three decorative colored dots */
+    .dots {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      margin-bottom: 1rem;
+    }
+    .dots span {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+
+    /*
+     * ==========================================================
+     *  GOOGLE FORM EMBED
+     *  Container fixed to 860px max-width; iframe fills it fully.
+     * ==========================================================
+     */
+    .form-container {
+      width: 100%;
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 0 1.25rem 3rem;
+      flex: 1;
+    }
+
+    /* Wrapper centers the iframe and caps it at 860px */
+    .iframe-wrapper {
+      width: 100%;
+      max-width: 860px;
+      margin: 0 auto;
+      display: block;
+    }
+
+    .form-container iframe {
+      width: 100%;
+      min-height: 1200px;
+      border: none;
+      border-radius: 12px;
+      display: block;
+      margin-top: 24px;
+      background: var(--surface);
+    }
+
+    /*
+     * ==========================================================
+     *  FOOTER — same as main site
+     * ==========================================================
+     */
+    .site-footer {
+      text-align: center;
+      padding: 2rem 1rem;
+      color: var(--text-secondary);
+      font-size: .8rem;
+      border-top: 1px solid var(--border);
+    }
+    .site-footer .credit {
+      margin-top: .25rem;
+      color: var(--text-secondary);
+      opacity: .6;
+    }
+
+    /* Mobile adjustments */
+    @media (max-width: 600px) {
+      .hero h1 { font-size: 1.35rem; }
+      .header-inner { flex-direction: column; gap: .75rem; }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- ==========================================================
+       HEADER
+       ========================================================== -->
+  <header class="site-header">
+    <div class="header-inner">
+      <a href="index.html" class="logo">Buckets<span>Wealth</span></a>
+      <a href="index.html" class="back-link">&larr; Back to Tools</a>
+    </div>
+  </header>
+
+  <!-- ==========================================================
+       HERO SECTION
+       ========================================================== -->
+  <section class="hero">
+    <h1>Share Your Feedback</h1>
+    <p>Help us make BucketsWealth better. Takes less than 2 minutes.</p>
+    <div class="dots">
+      <span style="background:#6C63FF"></span>
+      <span style="background:#00D4AA"></span>
+      <span style="background:#F5A623"></span>
+    </div>
+  </section>
+
+  <!-- ==========================================================
+       GOOGLE FORM EMBED
+       ========================================================== -->
+  <div class="form-container">
+    <div class="iframe-wrapper">
+      <iframe
+        src="https://docs.google.com/forms/d/e/1FAIpQLSd0ntTI9xuimHs39C8iZhSSD2dMCOVHGX_-tKzk-5jXnZqbdQ/viewform?embedded=true"
+        frameborder="0"
+        marginheight="0"
+        marginwidth="0">
+        Loading form...
+      </iframe>
+    </div>
+  </div>
+
+  <!-- ==========================================================
+       FOOTER
+       ========================================================== -->
+  <footer class="site-footer">
+    <div>For educational purposes only. Not financial advice.</div>
+    <div class="credit">&copy; 2025 BucketsWealth</div>
+  </footer>
+
+</body>
+</html>

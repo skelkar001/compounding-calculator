@@ -2,6 +2,17 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+
+  <!-- ==================== GOOGLE ANALYTICS ==================== -->
+  <!-- GA4 tracking — fires pageview automatically, custom events added in JS -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-0GQCEBE33H"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-0GQCEBE33H');
+  </script>
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>BucketsWealth — Financial Dashboard</title>
 
@@ -159,6 +170,23 @@
       background: var(--primary);
       color: #fff;
       box-shadow: 0 2px 8px rgba(108, 99, 255, .4);
+    }
+
+    /* "Give Feedback" ghost link in header */
+    .feedback-link {
+      border: 1px solid var(--border);
+      color: var(--text-secondary);
+      padding: 6px 14px;
+      border-radius: 8px;
+      font-size: .82rem;
+      font-weight: 500;
+      text-decoration: none;
+      white-space: nowrap;
+      transition: all .2s ease;
+    }
+    .feedback-link:hover {
+      border-color: var(--primary);
+      color: var(--text);
     }
 
     /*
@@ -537,25 +565,29 @@
      * ==========================================================
      */
     .step-card,
-    .al-step-card {
+    .al-step-card,
+    .rvb-step-card {
       display: none;
     }
 
     .step-card.active,
-    .al-step-card.active {
+    .al-step-card.active,
+    .rvb-step-card.active {
       display: block;
       animation: fadeUp .35s ease;
     }
 
     .step-card .question-text,
-    .al-step-card .question-text {
+    .al-step-card .question-text,
+    .rvb-step-card .question-text {
       font-size: 1.15rem;
       font-weight: 600;
       margin-bottom: .4rem;
     }
 
     .step-card .helper-text,
-    .al-step-card .helper-text {
+    .al-step-card .helper-text,
+    .rvb-step-card .helper-text {
       font-size: .85rem;
       color: var(--text-secondary);
       margin-bottom: 1.25rem;
@@ -1276,10 +1308,475 @@
         font-size: .9rem;
       }
     }
+
+    /*
+     * ==========================================================
+     *  SAVE & SHARE BUTTONS
+     *  Two-button row on results screens: PDF download + copy link
+     * ==========================================================
+     */
+    .save-share-row {
+      display: flex;
+      gap: 12px;
+      margin-top: 1.5rem;
+    }
+
+    .save-share-row button {
+      flex: 1;
+      height: 48px;
+      border-radius: 12px;
+      font-family: inherit;
+      font-size: .9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all .2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    /* Solid purple "Download PDF" button */
+    .btn-pdf {
+      background: var(--primary);
+      color: #fff;
+      border: none;
+    }
+    .btn-pdf:hover {
+      filter: brightness(1.1);
+      transform: scale(1.02);
+    }
+
+    /* Outlined "Copy Share Link" button */
+    .btn-share {
+      background: transparent;
+      color: var(--primary);
+      border: 1px solid var(--primary);
+    }
+    .btn-share:hover {
+      background: rgba(108, 99, 255, 0.1);
+    }
+
+    /* Shared recommendation banner (shown when visiting a shared URL) */
+    .shared-banner {
+      background: rgba(245, 166, 35, 0.15);
+      color: var(--warning);
+      padding: .75rem 1.25rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: .85rem;
+      font-weight: 500;
+    }
+    .shared-banner button {
+      background: none;
+      border: none;
+      color: var(--warning);
+      font-size: 1.1rem;
+      cursor: pointer;
+      padding: 0 4px;
+      font-family: inherit;
+    }
+
+
+    /*
+     * ==========================================================
+     *  RENT VS BUY — LIFESTYLE ADD-ON GRID
+     *  Two columns on desktop, one column on mobile.
+     *  Each add-on is a toggle card with an optional sub-input.
+     * ==========================================================
+     */
+
+    /* Section labels above each column */
+    .addon-column-label {
+      font-size: .72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .07em;
+      margin-bottom: .6rem;
+      padding: .35rem .75rem;
+      border-radius: 6px;
+      display: inline-block;
+    }
+    .addon-column-label.buy-label  { color: var(--primary); background: var(--primary-dim); }
+    .addon-column-label.rent-label { color: var(--success); background: var(--success-dim); }
+
+    /* 2-column grid that stacks on mobile */
+    .addon-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      margin-bottom: 1.25rem;
+    }
+    @media (max-width: 600px) {
+      .addon-grid { grid-template-columns: 1fr; }
+    }
+
+    /* Individual add-on toggle card */
+    .addon-card {
+      background: var(--elevated);
+      border: 2px solid var(--border);
+      border-radius: var(--radius);
+      padding: .85rem 1rem;
+      cursor: pointer;
+      transition: all .2s ease;
+      font-family: inherit;
+      color: var(--text-secondary);
+      text-align: left;
+      width: 100%;
+      position: relative;
+    }
+    .addon-card:hover { border-color: var(--border-bright); }
+    .addon-card.selected-buy  { border-color: var(--primary); background: var(--primary-dim); }
+    .addon-card.selected-rent { border-color: var(--success); background: var(--success-dim); }
+
+    .addon-card-top {
+      display: flex;
+      align-items: flex-start;
+      gap: .6rem;
+    }
+    .addon-icon {
+      font-size: 1.1rem;
+      flex-shrink: 0;
+      line-height: 1.4;
+      color: var(--text-muted);
+    }
+    .addon-card.selected-buy  .addon-icon { color: var(--primary); }
+    .addon-card.selected-rent .addon-icon { color: var(--success); }
+
+    .addon-card-info { flex: 1; }
+    .addon-card-info .addon-name {
+      font-size: .9rem;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: .15rem;
+    }
+    .addon-card-info .addon-helper {
+      font-size: .75rem;
+      color: var(--text-muted);
+      line-height: 1.4;
+    }
+
+    /* Toggle switch (visual only, actual state tracked in JS) */
+    .addon-switch {
+      width: 32px;
+      height: 18px;
+      border-radius: 9px;
+      background: var(--border);
+      flex-shrink: 0;
+      position: relative;
+      transition: background .2s;
+      margin-top: 2px;
+    }
+    .addon-switch::after {
+      content: '';
+      position: absolute;
+      top: 2px; left: 2px;
+      width: 14px; height: 14px;
+      border-radius: 50%;
+      background: #fff;
+      transition: transform .2s;
+    }
+    .addon-card.selected-buy  .addon-switch { background: var(--primary); }
+    .addon-card.selected-rent .addon-switch { background: var(--success); }
+    .addon-card.selected-buy  .addon-switch::after,
+    .addon-card.selected-rent .addon-switch::after { transform: translateX(14px); }
+
+    /* Amount input shown when add-on is toggled ON */
+    .addon-amount-row {
+      display: none;
+      align-items: center;
+      gap: .5rem;
+      margin-top: .65rem;
+      padding-top: .65rem;
+      border-top: 1px solid var(--border);
+    }
+    .addon-card.selected-buy  .addon-amount-row,
+    .addon-card.selected-rent .addon-amount-row { display: flex; }
+
+    .addon-amount-row label {
+      font-size: .78rem;
+      color: var(--text-secondary);
+      white-space: nowrap;
+    }
+    .addon-amount-row input {
+      width: 80px;
+      padding: .35rem .5rem;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text);
+      font-family: inherit;
+      font-size: .9rem;
+      font-variant-numeric: tabular-nums;
+      outline: none;
+      -moz-appearance: textfield;
+    }
+    .addon-amount-row input:focus { border-color: var(--primary); }
+    .addon-amount-row input::-webkit-outer-spin-button,
+    .addon-amount-row input::-webkit-inner-spin-button { -webkit-appearance: none; }
+
+    /* Custom add-on row at bottom of step 3 */
+    .custom-addon-row {
+      display: flex;
+      gap: .75rem;
+      align-items: flex-end;
+      margin-bottom: 1rem;
+      flex-wrap: wrap;
+    }
+    .custom-addon-row .float-field { flex: 1; min-width: 140px; margin-bottom: 0; }
+    .custom-addon-row .float-field.w-short { flex: 0 0 90px; }
+    .custom-addon-row .btn-add-addon {
+      height: 46px;
+      padding: 0 1rem;
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      border-radius: var(--radius-sm);
+      font-family: inherit;
+      font-size: .88rem;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: filter .2s;
+    }
+    .custom-addon-row .btn-add-addon:hover { filter: brightness(1.1); }
+
+    /* Tags for custom add-ons */
+    .addon-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: .5rem;
+      margin-bottom: 1rem;
+    }
+    .addon-tag {
+      background: var(--elevated);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: .3rem .75rem;
+      font-size: .8rem;
+      color: var(--text-secondary);
+      display: flex;
+      align-items: center;
+      gap: .4rem;
+    }
+    .addon-tag .tag-remove {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: .9rem;
+      padding: 0;
+      line-height: 1;
+    }
+    .addon-tag .tag-remove:hover { color: var(--danger); }
+
+    /*
+     * ==========================================================
+     *  RENT VS BUY — RESULTS SCREEN
+     * ==========================================================
+     */
+
+    /* Breakeven callout — large prominent card */
+    .breakeven-callout {
+      background: var(--elevated);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      text-align: center;
+      margin-bottom: 1.5rem;
+    }
+    .breakeven-callout .be-year {
+      font-size: 2.4rem;
+      font-weight: 800;
+      font-variant-numeric: tabular-nums;
+      margin-bottom: .2rem;
+    }
+    .breakeven-callout .be-year.good { color: var(--success); }
+    .breakeven-callout .be-year.bad  { color: var(--danger); }
+    .breakeven-callout .be-year.neutral { color: var(--warning); }
+    .breakeven-callout .be-sub {
+      font-size: .9rem;
+      color: var(--text-secondary);
+      line-height: 1.5;
+    }
+
+    /* 10-year comparison table (extends tax-table style) */
+    .compare-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 1.5rem;
+    }
+    .compare-table th {
+      text-align: left;
+      font-size: .72rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .05em;
+      color: var(--text-muted);
+      padding: .65rem .85rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .compare-table td {
+      padding: .75rem .85rem;
+      font-size: .95rem;
+      font-weight: 600;
+      font-variant-numeric: tabular-nums;
+      color: var(--text);
+      border-bottom: 1px solid var(--border);
+    }
+    .compare-table tr:last-child td { border-bottom: none; }
+    .compare-table .winner { color: var(--success); }
+    .compare-table .row-label { color: var(--text-secondary); font-weight: 400; }
+
+    /* Verdict badge extensions for rent vs buy */
+    .verdict-badge.buying-wins {
+      background: rgba(0, 212, 170, .12);
+      color: var(--success);
+      border: 2px solid var(--success);
+      box-shadow: 0 0 24px rgba(0, 212, 170, .3), 0 0 48px rgba(0, 212, 170, .1);
+    }
+    .verdict-badge.renting-wins {
+      background: var(--primary-dim);
+      color: var(--primary);
+      border: 2px solid var(--primary);
+      box-shadow: 0 0 24px rgba(108, 99, 255, .3), 0 0 48px rgba(108, 99, 255, .1);
+    }
+    .verdict-badge.too-close {
+      background: var(--warning-dim);
+      color: var(--warning);
+      border: 2px solid var(--warning);
+      box-shadow: 0 0 24px rgba(245, 166, 35, .3), 0 0 48px rgba(245, 166, 35, .1);
+    }
+
+    /* Lifestyle impact mini table */
+    .lifestyle-impact-card {
+      background: var(--elevated);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.25rem;
+      margin-bottom: 1.5rem;
+    }
+    .lifestyle-impact-card .li-title {
+      font-size: .75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      color: var(--text-muted);
+      margin-bottom: 1rem;
+    }
+    .lifestyle-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: .45rem 0;
+      border-bottom: 1px solid var(--border);
+      font-size: .88rem;
+    }
+    .lifestyle-row:last-of-type { border-bottom: none; }
+    .lifestyle-row .li-name { color: var(--text-secondary); }
+    .lifestyle-row .li-val { font-variant-numeric: tabular-nums; font-weight: 600; }
+
+    /* Live hint text below sliders in steps */
+    .live-hint {
+      font-size: .82rem;
+      color: var(--text-secondary);
+      margin-top: .35rem;
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* Breakeven chart container */
+    .rvb-chart-container {
+      position: relative;
+      width: 100%;
+      height: 280px;
+    }
+
+  </style>
+
+  <!-- ==================== PRINT STYLES ====================
+       Prints the entire page as-is with dark theme intact.
+       Only hides UI chrome that makes no sense on paper.
+       ===================================================== -->
+  <style media="print">
+    * {
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
+
+    @page {
+      margin: 1cm;
+      size: A4;
+    }
+
+    body {
+      background: #0A0A0F !important;
+      color: #EEEEF5 !important;
+      font-size: 12px !important;
+    }
+
+    /* Hide only things that make no sense on paper */
+    .tab-nav,
+    .save-share-buttons,
+    .start-over-btn,
+    .save-share-row,
+    .mc-trigger-btn,
+    .btn-ghost,
+    .site-header,
+    .shared-banner,
+    button:not(.print-keep) {
+      display: none !important;
+    }
+
+    /* Keep all content cards fully visible */
+    .tool-section,
+    .results-section,
+    .reason-card,
+    .metric-card,
+    .impact-table,
+    .verdict-badge,
+    .simulation-section {
+      display: block !important;
+      break-inside: avoid;
+      page-break-inside: avoid;
+    }
+
+    /* Add header to every printed page */
+    header::before {
+      content: "BucketsWealth Financial Report — www.bucketswealth.com";
+      display: block;
+      font-size: 11px;
+      color: #8888AA;
+      border-bottom: 1px solid #2A2A40;
+      padding-bottom: 6px;
+      margin-bottom: 12px;
+    }
+
+    /* Add date to footer using the data-print-date attribute set by JS */
+    footer::after {
+      content: "Printed on " attr(data-print-date) " — For educational purposes only. Not financial advice.";
+      display: block;
+      font-size: 10px;
+      color: #8888AA;
+      margin-top: 12px;
+      border-top: 1px solid #2A2A40;
+      padding-top: 6px;
+    }
+
+    /* Ensure charts print */
+    canvas {
+      max-width: 100% !important;
+    }
   </style>
 </head>
 
 <body>
+
+  <!-- Shared recommendation banner — shown when visiting a shared URL -->
+  <div class="shared-banner" id="shared-banner" style="display:none">
+    <span>Viewing a shared recommendation — inputs pre-filled</span>
+    <button onclick="document.getElementById('shared-banner').style.display='none'" aria-label="Dismiss">×</button>
+  </div>
 
   <!-- ==========================================================
        HEADER — logo + pill toggle to switch between tools
@@ -1287,10 +1784,14 @@
   <header class="site-header">
     <div class="header-inner">
       <div class="logo">Buckets<span>Wealth</span></div>
-      <div class="pill-toggle">
-        <button class="active" onclick="switchTool('compound')">Compound Calculator</button>
-        <button onclick="switchTool('rsu')">RSU Decision</button>
-        <button onclick="switchTool('auto')">Auto Loan Optimizer</button>
+      <div style="display:flex;align-items:center;gap:12px;">
+        <div class="pill-toggle">
+          <button class="active" onclick="switchTool('compound')">Compound Calculator</button>
+          <button onclick="switchTool('rsu')">RSU Decision</button>
+          <button onclick="switchTool('auto')">Auto Loan Optimizer</button>
+          <button onclick="switchTool('rvb')">Rent vs Buy</button>
+        </div>
+        <a href="feedback.html" class="feedback-link" onclick="if(typeof gtag!=='undefined')gtag('event','feedback_page_visited',{})">Give Feedback</a>
       </div>
     </div>
   </header>
@@ -1746,6 +2247,447 @@
         </div>
       </div>
     </section>
+
+    <!-- ==========================================================
+         TOOL 4: RENT VS BUY CALCULATOR
+         Same step-by-step card flow as RSU and Auto Loan.
+         4 input steps + 1 results step = 5 dots total.
+         ========================================================== -->
+    <section id="tool-rvb" class="tool-section">
+
+      <div class="section-header">
+        <h2>Rent vs Buy Calculator</h2>
+        <p>Find out whether buying or renting makes more financial sense for your situation.</p>
+      </div>
+
+      <!-- Progress dots — built dynamically by JS -->
+      <div class="rsu-progress" id="rvb-progress"></div>
+
+      <!-- ======================================================
+           STEP 1 — BUYING COSTS
+           ====================================================== -->
+      <div class="rvb-step-card active" data-rvb-step="1">
+        <div class="card">
+          <div class="question-text">Tell us about the home you're considering</div>
+          <div class="helper-text">Enter the details about the purchase. We'll calculate your all-in monthly cost.</div>
+
+          <!-- Home price -->
+          <div class="float-field has-prefix">
+            <span class="prefix">$</span>
+            <input type="number" id="rvb-price" placeholder=" " value="500000" min="0" step="10000">
+            <label>Home Price</label>
+          </div>
+
+          <!-- Down payment slider -->
+          <div class="range-group">
+            <div class="range-header">
+              <span class="helper-text" style="margin-bottom:0">Down Payment</span>
+              <span class="range-value" id="rvb-down-label">20%</span>
+            </div>
+            <input type="range" id="rvb-down" min="5" max="40" value="20" step="1"
+                   oninput="rvbUpdateDownSlider()">
+            <div class="live-hint" id="rvb-down-hint">That's $100,000 down — $400,000 loan amount</div>
+          </div>
+
+          <!-- Mortgage rate -->
+          <div class="float-field has-suffix">
+            <input type="number" id="rvb-rate" placeholder=" " value="7.0" min="0" step="0.1">
+            <label>Mortgage Rate</label>
+            <span class="suffix">%</span>
+          </div>
+
+          <!-- Loan term -->
+          <div class="float-field">
+            <select id="rvb-term" class="dark-select" style="margin-bottom:0">
+              <option value="30" selected>30 years</option>
+              <option value="15">15 years</option>
+            </select>
+            <label>Loan Term</label>
+          </div>
+
+          <!-- Property tax -->
+          <div class="float-field has-suffix" style="margin-top:1.25rem">
+            <input type="number" id="rvb-ptax" placeholder=" " value="1.2" min="0" step="0.1">
+            <label>Annual Property Tax</label>
+            <span class="suffix">%</span>
+          </div>
+          <div class="helper-text" style="margin-top:-.75rem">Typically 0.5%–2.5% depending on location</div>
+
+          <!-- HOA -->
+          <div class="float-field has-prefix">
+            <span class="prefix">$</span>
+            <input type="number" id="rvb-hoa" placeholder=" " value="0" min="0" step="25">
+            <label>Monthly HOA</label>
+          </div>
+
+          <!-- Maintenance -->
+          <div class="float-field has-suffix">
+            <input type="number" id="rvb-maint" placeholder=" " value="1.0" min="0" step="0.1">
+            <label>Annual Maintenance</label>
+            <span class="suffix">%</span>
+          </div>
+          <div class="helper-text" style="margin-top:-.75rem">Rule of thumb: 1% of home value per year</div>
+
+          <!-- Home appreciation slider -->
+          <div class="range-group">
+            <div class="range-header">
+              <span class="helper-text" style="margin-bottom:0">Expected Annual Home Appreciation</span>
+              <span class="range-value" id="rvb-appr-label">3%</span>
+            </div>
+            <input type="range" id="rvb-appr" min="1" max="6" value="3" step="0.5"
+                   oninput="rvbUpdateApprSlider()">
+          </div>
+
+          <div class="step-nav">
+            <button class="btn btn-next" onclick="rvbNext(2)">Next</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ======================================================
+           STEP 2 — RENTING COSTS
+           ====================================================== -->
+      <div class="rvb-step-card" data-rvb-step="2">
+        <div class="card">
+          <div class="question-text">Tell us about renting in the same area</div>
+          <div class="helper-text">We'll compare renting to buying over your planned time horizon.</div>
+
+          <!-- Monthly rent -->
+          <div class="float-field has-prefix">
+            <span class="prefix">$</span>
+            <input type="number" id="rvb-rent" placeholder=" " value="2500" min="0" step="50">
+            <label>Current Monthly Rent</label>
+          </div>
+
+          <!-- Rent increase slider -->
+          <div class="range-group">
+            <div class="range-header">
+              <span class="helper-text" style="margin-bottom:0">Annual Rent Increase</span>
+              <span class="range-value" id="rvb-rincrease-label">3%</span>
+            </div>
+            <input type="range" id="rvb-rincrease" min="1" max="8" value="3" step="0.5"
+                   oninput="rvbUpdateRIncreaseSlider()">
+          </div>
+
+          <!-- Renter's insurance -->
+          <div class="float-field has-prefix">
+            <span class="prefix">$</span>
+            <input type="number" id="rvb-rins" placeholder=" " value="20" min="0" step="5">
+            <label>Renter's Insurance (monthly)</label>
+          </div>
+
+          <!-- Investment of down payment -->
+          <div class="float-field">
+            <select id="rvb-invest" class="dark-select" style="margin-bottom:0">
+              <option value="7" selected>Index funds (~7% avg)</option>
+              <option value="4">Bonds (~4% avg)</option>
+              <option value="5">Savings account (~5% avg)</option>
+              <option value="0">I wouldn't invest it</option>
+            </select>
+            <label>If you rent instead, where would you invest the down payment?</label>
+          </div>
+
+          <div class="step-nav">
+            <button class="btn btn-back" onclick="rvbBack(1)">Back</button>
+            <button class="btn btn-next" onclick="rvbNext(3)">Next</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ======================================================
+           STEP 3 — LIFESTYLE ADD-ONS
+           ====================================================== -->
+      <div class="rvb-step-card" data-rvb-step="3">
+        <div class="card">
+          <div class="question-text">Account for lifestyle differences between buying and renting</div>
+          <div class="helper-text" style="margin-bottom:1.5rem">Toggle any costs or savings that apply to your situation. These shift the true monthly cost for each path.</div>
+
+          <!-- Two-column add-on grid -->
+          <div class="addon-grid">
+
+            <!-- BUYING add-ons — left column -->
+            <div>
+              <div class="addon-column-label buy-label">If you BUY, you'll also pay/save:</div>
+
+              <!-- B1: Better school district -->
+              <button class="addon-card" id="rvb-addon-buy-school" onclick="rvbToggleAddon(this, 'buy')">
+                <div class="addon-card-top">
+                  <span class="addon-icon">&#9672;</span>
+                  <div class="addon-card-info">
+                    <div class="addon-name">Better school district</div>
+                    <div class="addon-helper">Private school savings or premium location</div>
+                  </div>
+                  <div class="addon-switch"></div>
+                </div>
+                <div class="addon-amount-row">
+                  <label>Monthly extra: $</label>
+                  <input type="number" value="300" min="0" step="25" onclick="event.stopPropagation()" oninput="event.stopPropagation()">
+                </div>
+              </button>
+
+              <!-- B2: Larger space / storage -->
+              <button class="addon-card" id="rvb-addon-buy-space" onclick="rvbToggleAddon(this, 'buy')" style="margin-top:.75rem">
+                <div class="addon-card-top">
+                  <span class="addon-icon">&#8977;</span>
+                  <div class="addon-card-info">
+                    <div class="addon-name">Larger space / storage unit</div>
+                    <div class="addon-helper">No need for external storage</div>
+                  </div>
+                  <div class="addon-switch"></div>
+                </div>
+                <div class="addon-amount-row">
+                  <label>Monthly extra: $</label>
+                  <input type="number" value="150" min="0" step="25" onclick="event.stopPropagation()" oninput="event.stopPropagation()">
+                </div>
+              </button>
+
+              <!-- B3: Longer commute -->
+              <button class="addon-card" id="rvb-addon-buy-commute" onclick="rvbToggleAddon(this, 'buy')" style="margin-top:.75rem">
+                <div class="addon-card-top">
+                  <span class="addon-icon">&#9677;</span>
+                  <div class="addon-card-info">
+                    <div class="addon-name">Longer commute</div>
+                    <div class="addon-helper">Gas, tolls, parking if further from city</div>
+                  </div>
+                  <div class="addon-switch"></div>
+                </div>
+                <div class="addon-amount-row">
+                  <label>Monthly extra: $</label>
+                  <input type="number" value="200" min="0" step="25" onclick="event.stopPropagation()" oninput="event.stopPropagation()">
+                </div>
+              </button>
+
+              <!-- B4: Home office (saving) -->
+              <button class="addon-card" id="rvb-addon-buy-office" onclick="rvbToggleAddon(this, 'buy')" style="margin-top:.75rem">
+                <div class="addon-card-top">
+                  <span class="addon-icon">&#8862;</span>
+                  <div class="addon-card-info">
+                    <div class="addon-name">Home office / dedicated workspace</div>
+                    <div class="addon-helper">Saves on coworking or cafe costs</div>
+                  </div>
+                  <div class="addon-switch"></div>
+                </div>
+                <div class="addon-amount-row">
+                  <label>Monthly saving: $</label>
+                  <input type="number" value="100" min="0" step="25" onclick="event.stopPropagation()" oninput="event.stopPropagation()" data-is-saving="true">
+                </div>
+              </button>
+
+              <!-- B5: Yard / outdoor space (saving) -->
+              <button class="addon-card" id="rvb-addon-buy-yard" onclick="rvbToggleAddon(this, 'buy')" style="margin-top:.75rem">
+                <div class="addon-card-top">
+                  <span class="addon-icon">&#9672;</span>
+                  <div class="addon-card-info">
+                    <div class="addon-name">Yard / outdoor space</div>
+                    <div class="addon-helper">Saves on gym, park memberships</div>
+                  </div>
+                  <div class="addon-switch"></div>
+                </div>
+                <div class="addon-amount-row">
+                  <label>Monthly saving: $</label>
+                  <input type="number" value="80" min="0" step="25" onclick="event.stopPropagation()" oninput="event.stopPropagation()" data-is-saving="true">
+                </div>
+              </button>
+            </div>
+
+            <!-- RENTING add-ons — right column -->
+            <div>
+              <div class="addon-column-label rent-label">If you RENT, you'll also pay/save:</div>
+
+              <!-- R1: Gym / amenities -->
+              <button class="addon-card" id="rvb-addon-rent-gym" onclick="rvbToggleAddon(this, 'rent')">
+                <div class="addon-card-top">
+                  <span class="addon-icon">&#9678;</span>
+                  <div class="addon-card-info">
+                    <div class="addon-name">Gym / amenities membership</div>
+                    <div class="addon-helper">If rental doesn't include gym</div>
+                  </div>
+                  <div class="addon-switch"></div>
+                </div>
+                <div class="addon-amount-row">
+                  <label>Monthly extra: $</label>
+                  <input type="number" value="80" min="0" step="25" onclick="event.stopPropagation()" oninput="event.stopPropagation()">
+                </div>
+              </button>
+
+              <!-- R2: Storage unit -->
+              <button class="addon-card" id="rvb-addon-rent-storage" onclick="rvbToggleAddon(this, 'rent')" style="margin-top:.75rem">
+                <div class="addon-card-top">
+                  <span class="addon-icon">&#8977;</span>
+                  <div class="addon-card-info">
+                    <div class="addon-name">Storage unit</div>
+                    <div class="addon-helper">If you need external storage</div>
+                  </div>
+                  <div class="addon-switch"></div>
+                </div>
+                <div class="addon-amount-row">
+                  <label>Monthly extra: $</label>
+                  <input type="number" value="120" min="0" step="25" onclick="event.stopPropagation()" oninput="event.stopPropagation()">
+                </div>
+              </button>
+
+              <!-- R3: Shorter commute (saving) -->
+              <button class="addon-card" id="rvb-addon-rent-commute" onclick="rvbToggleAddon(this, 'rent')" style="margin-top:.75rem">
+                <div class="addon-card-top">
+                  <span class="addon-icon">&#9677;</span>
+                  <div class="addon-card-info">
+                    <div class="addon-name">Shorter commute / city living</div>
+                    <div class="addon-helper">Save on transport costs</div>
+                  </div>
+                  <div class="addon-switch"></div>
+                </div>
+                <div class="addon-amount-row">
+                  <label>Monthly saving: $</label>
+                  <input type="number" value="200" min="0" step="25" onclick="event.stopPropagation()" oninput="event.stopPropagation()" data-is-saving="true">
+                </div>
+              </button>
+
+              <!-- R4: Flexible relocation (saving) -->
+              <button class="addon-card" id="rvb-addon-rent-flex" onclick="rvbToggleAddon(this, 'rent')" style="margin-top:.75rem">
+                <div class="addon-card-top">
+                  <span class="addon-icon">&#8862;</span>
+                  <div class="addon-card-info">
+                    <div class="addon-name">Flexible relocation</div>
+                    <div class="addon-helper">Avoid moving costs every few years</div>
+                  </div>
+                  <div class="addon-switch"></div>
+                </div>
+                <div class="addon-amount-row">
+                  <label>Monthly saving: $</label>
+                  <input type="number" value="150" min="0" step="25" onclick="event.stopPropagation()" oninput="event.stopPropagation()" data-is-saving="true">
+                </div>
+              </button>
+
+              <!-- R5: No maintenance stress (saving) -->
+              <button class="addon-card" id="rvb-addon-rent-maint" onclick="rvbToggleAddon(this, 'rent')" style="margin-top:.75rem">
+                <div class="addon-card-top">
+                  <span class="addon-icon">&#9672;</span>
+                  <div class="addon-card-info">
+                    <div class="addon-name">No maintenance stress</div>
+                    <div class="addon-helper">Time value of DIY repairs</div>
+                  </div>
+                  <div class="addon-switch"></div>
+                </div>
+                <div class="addon-amount-row">
+                  <label>Monthly saving: $</label>
+                  <input type="number" value="100" min="0" step="25" onclick="event.stopPropagation()" oninput="event.stopPropagation()" data-is-saving="true">
+                </div>
+              </button>
+            </div>
+          </div>
+
+          <!-- Custom add-on row -->
+          <div style="font-size:.8rem;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);margin-bottom:.75rem">Add your own</div>
+          <div class="custom-addon-row">
+            <div class="float-field">
+              <input type="text" id="rvb-custom-desc" placeholder=" ">
+              <label>Description</label>
+            </div>
+            <div class="float-field w-short has-prefix">
+              <span class="prefix">$</span>
+              <input type="number" id="rvb-custom-amount" placeholder=" " value="0" min="0" step="25">
+              <label>Monthly</label>
+            </div>
+            <div class="float-field w-short">
+              <select id="rvb-custom-for" class="dark-select" style="margin-bottom:0;height:46px">
+                <option value="buy">Buy</option>
+                <option value="rent">Rent</option>
+              </select>
+              <label>For</label>
+            </div>
+            <button class="btn-add-addon" onclick="rvbAddCustomAddon()">+ Add</button>
+          </div>
+          <!-- Custom add-on tags appear here -->
+          <div class="addon-tags" id="rvb-custom-tags"></div>
+
+          <div class="step-nav">
+            <button class="btn btn-back" onclick="rvbBack(2)">Back</button>
+            <button class="btn btn-next" onclick="rvbNext(4)">Next</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ======================================================
+           STEP 4 — YOUR SITUATION
+           ====================================================== -->
+      <div class="rvb-step-card" data-rvb-step="4">
+        <div class="card">
+          <div class="question-text">Tell us about your situation</div>
+          <div class="helper-text">These details help us calculate the real after-tax cost for each path.</div>
+
+          <!-- Years to stay slider -->
+          <div class="range-group">
+            <div class="range-header">
+              <span class="helper-text" style="margin-bottom:0">How long do you plan to stay?</span>
+              <span class="range-value" id="rvb-stay-label">7 yrs</span>
+            </div>
+            <input type="range" id="rvb-stay" min="1" max="20" value="7" step="1"
+                   oninput="rvbUpdateStaySlider()">
+            <div class="live-hint" id="rvb-stay-hint">Planning to stay 7 years</div>
+          </div>
+
+          <!-- Tax bracket -->
+          <div class="float-field" style="margin-top:.5rem">
+            <select id="rvb-bracket" class="dark-select" style="margin-bottom:0">
+              <option value="22">22%</option>
+              <option value="24" selected>24%</option>
+              <option value="32">32%</option>
+              <option value="35">35%</option>
+              <option value="37">37%</option>
+            </select>
+            <label>Your income tax bracket</label>
+          </div>
+          <div class="helper-text" style="margin-top:-.75rem;margin-bottom:1.25rem">Used to calculate mortgage interest deduction benefit</div>
+
+          <!-- Filing status -->
+          <div class="float-field">
+            <select id="rvb-filing" class="dark-select" style="margin-bottom:0">
+              <option value="single" selected>Single</option>
+              <option value="married">Married filing jointly</option>
+            </select>
+            <label>Filing status</label>
+          </div>
+
+          <!-- Itemize deductions -->
+          <div style="font-size:.85rem;color:var(--text-secondary);margin:1rem 0 .5rem">Do you itemize deductions?</div>
+          <div class="toggle-cards" id="rvb-itemize-toggle" style="margin-bottom:.5rem">
+            <button class="toggle-card" data-value="yes" onclick="rvbToggleItemize(this)">
+              <span class="tc-icon">&#10003;</span>
+              Yes — I itemize
+            </button>
+            <button class="toggle-card selected" data-value="no" onclick="rvbToggleItemize(this)">
+              <span class="tc-icon">&#9776;</span>
+              No — standard deduction
+            </button>
+          </div>
+          <div class="helper-text" style="margin-bottom:1.25rem">If yes, mortgage interest may be tax deductible above your standard deduction</div>
+
+          <div class="step-nav">
+            <button class="btn btn-back" onclick="rvbBack(3)">Back</button>
+            <button class="btn btn-primary" onclick="rvbGetRecommendation()">See My Results</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ======================================================
+           STEP 5 — RESULTS
+           ====================================================== -->
+      <div class="rvb-step-card" data-rvb-step="5">
+        <div class="card" id="rvb-results-card">
+          <!-- Filled dynamically by JS -->
+        </div>
+
+        <!-- Breakeven chart card -->
+        <div class="card hidden" id="rvb-chart-card">
+          <div class="card-title">Breakeven Chart — Cumulative Net Cost Over 20 Years</div>
+          <div style="font-size:.78rem;color:var(--text-muted);margin-bottom:1rem">Where the lines cross = breakeven. Dashed amber line = your planned stay.</div>
+          <div class="rvb-chart-container">
+            <canvas id="rvbBreakevenChart"></canvas>
+          </div>
+        </div>
+      </div>
+
+    </section>
   </main>
 
   <!-- ==========================================================
@@ -1786,13 +2728,20 @@
       pills.forEach((p) => p.classList.remove("active"));
 
       /* Map tool name → pill index */
-      const toolIndex = { compound: 0, rsu: 1, auto: 2 };
+      const toolIndex = { compound: 0, rsu: 1, auto: 2, rvb: 3 };
       pills[toolIndex[tool]].classList.add("active");
 
-      /* Show/hide all three sections */
+      /* Show/hide all four sections */
       document.getElementById("tool-compound").classList.toggle("visible", tool === "compound");
       document.getElementById("tool-rsu").classList.toggle("visible", tool === "rsu");
       document.getElementById("tool-auto").classList.toggle("visible", tool === "auto");
+      document.getElementById("tool-rvb").classList.toggle("visible", tool === "rvb");
+
+      /* GA4: track which tab the user navigated to */
+      const toolNames = { compound: "compound_calculator", rsu: "rsu_decision", auto: "auto_loan", rvb: "rent_vs_buy" };
+      if (typeof gtag !== "undefined") {
+        gtag('event', 'tab_switched', { 'tool_name': toolNames[tool] });
+      }
 
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
@@ -2355,6 +3304,11 @@
 
         ${concMeterHTML}
 
+        <div class="save-share-row">
+          <button class="btn-pdf" onclick="downloadPDF('rsu')">↓ Download PDF</button>
+          <button class="btn-share" id="rsu-share-btn" onclick="copyShareLink('rsu')">⎘ Copy Share Link</button>
+        </div>
+
         <button class="mc-trigger-btn" id="rsu-mc-trigger" onclick="rsuToggleMC()">
           ∿ See 1,000 Simulated Futures
           <div class="mc-loading-bar hidden" id="rsu-mc-loading"><div class="mc-loading-fill" id="rsu-mc-loading-fill"></div></div>
@@ -2369,6 +3323,11 @@
 
       /* Store the evaluated result for MC to use later */
       rsuLastResult = { inputs, r };
+
+      /* GA4: track tool completion with verdict */
+      if (typeof gtag !== "undefined") {
+        gtag('event', 'tool_completed', { 'tool_name': 'rsu_decision', 'recommendation': badgeText });
+      }
 
       /* Navigate to the results step */
       rsuGoToStep(7);
@@ -2846,6 +3805,11 @@
 
         ${taxNoteHTML}
 
+        <div class="save-share-row">
+          <button class="btn-pdf" onclick="downloadPDF('loan')">↓ Download PDF</button>
+          <button class="btn-share" id="al-share-btn" onclick="copyShareLink('loan')">⎘ Copy Share Link</button>
+        </div>
+
         <button class="mc-trigger-btn" id="al-mc-trigger" onclick="alToggleMC()">
           ∿ See 1,000 Simulated Futures
           <div class="mc-loading-bar hidden" id="al-mc-loading"><div class="mc-loading-fill" id="al-mc-loading-fill"></div></div>
@@ -2860,6 +3824,11 @@
 
       /* Store evaluated result for MC to use later */
       alLastResult = { inputs, r };
+
+      /* GA4: track tool completion with verdict */
+      if (typeof gtag !== "undefined") {
+        gtag('event', 'tool_completed', { 'tool_name': 'auto_loan', 'recommendation': badgeText });
+      }
 
       /* Navigate to results step */
       alGoToStep(6);
@@ -3220,6 +4189,11 @@
       const loading = document.getElementById("rsu-mc-loading");
       const fill    = document.getElementById("rsu-mc-loading-fill");
 
+      /* GA4: track simulation trigger */
+      if (typeof gtag !== "undefined" && !rsuMCGenerated) {
+        gtag('event', 'simulation_run', { 'tool_name': 'rsu_decision' });
+      }
+
       if (rsuMCGenerated) {
         /* Toggle visibility */
         section.classList.toggle("hidden");
@@ -3462,6 +4436,11 @@
       const loading = document.getElementById("al-mc-loading");
       const fill    = document.getElementById("al-mc-loading-fill");
 
+      /* GA4: track simulation trigger */
+      if (typeof gtag !== "undefined" && !alMCGenerated) {
+        gtag('event', 'simulation_run', { 'tool_name': 'auto_loan' });
+      }
+
       if (alMCGenerated) {
         section.classList.toggle("hidden");
         btn.textContent = section.classList.contains("hidden")
@@ -3500,6 +4479,951 @@
 
     /*
      * ============================================================
+     *  SAVE & SHARE — PDF DOWNLOAD + COPY LINK
+     *  downloadPDF() triggers the browser print dialog with
+     *  print-friendly styles applied.
+     *  copyShareLink() encodes user inputs into URL params
+     *  and copies the full URL to clipboard.
+     * ============================================================
+     */
+
+    /* Download PDF — triggers the browser print dialog.
+       The <style media="print"> block handles the visual styling.
+       We set data-print-date on the footer so the CSS ::after
+       rule can show "Printed on [date]" at the bottom of the page. */
+    function downloadPDF(tool) {
+      /* Set today's date on the <footer> element for the print CSS footer */
+      document.querySelector('footer').setAttribute(
+        'data-print-date',
+        new Date().toLocaleDateString('en-US', {
+          year: 'numeric', month: 'long', day: 'numeric'
+        })
+      );
+
+      /* Open print dialog */
+      window.print();
+
+      /* GA4: track PDF download */
+      if (typeof gtag !== "undefined") {
+        gtag('event', 'pdf_downloaded', { 'tool_name': tool });
+      }
+    }
+
+    /* Copy Share Link — encodes inputs into URL params and copies to clipboard */
+    function copyShareLink(tool) {
+      /* GA4: track share link copy */
+      if (typeof gtag !== "undefined") {
+        gtag('event', 'share_link_copied', { 'tool_name': tool === 'rsu' ? 'rsu_decision' : 'auto_loan' });
+      }
+
+      const baseUrl = window.location.origin + window.location.pathname;
+      let params;
+
+      if (tool === 'rsu') {
+        /* Encode RSU inputs into URL params */
+        params = new URLSearchParams({
+          tool:          'rsu',
+          value:         document.getElementById('rsu-value').value,
+          held:          rsuAnswers.holdPeriod || 'long',
+          debt:          rsuAnswers.hasDebt || 'no',
+          emergency:     rsuAnswers.hasEmergency || 'yes',
+          concentration: document.getElementById('rsu-concentration').value,
+          bracket:       document.getElementById('rsu-bracket').value,
+        });
+      } else {
+        /* Encode Auto Loan inputs into URL params */
+        params = new URLSearchParams({
+          tool:      'loan',
+          balance:   document.getElementById('al-balance').value,
+          emi:       document.getElementById('al-emi').value,
+          rate:      document.getElementById('al-rate').value,
+          months:    document.getElementById('al-months').value,
+          cash:      document.getElementById('al-cash').value,
+          emergency: alAnswers.hasEmergency || 'yes',
+          otherdebt: alAnswers.hasOtherDebt || 'no',
+          return:    document.getElementById('al-return').value,
+          bracket:   document.getElementById('al-bracket').value,
+        });
+      }
+
+      const shareUrl = baseUrl + '?' + params.toString();
+
+      /* Copy to clipboard and update button text */
+      navigator.clipboard.writeText(shareUrl).then(() => {
+        const btnId = tool === 'rsu' ? 'rsu-share-btn' : 'al-share-btn';
+        const btn = document.getElementById(btnId);
+        btn.textContent = '✓ Link Copied!';
+        setTimeout(() => { btn.textContent = '⎘ Copy Share Link'; }, 2000);
+      });
+    }
+
+    /*
+     * URL PARAM DECODING — pre-fill inputs from shared link
+     * Called on DOMContentLoaded to check for URL params and
+     * auto-run the recommendation if params are found.
+     */
+    function handleSharedUrl() {
+      const params = new URLSearchParams(window.location.search);
+      const tool = params.get('tool');
+      if (!tool) return;
+
+      if (tool === 'rsu') {
+        /* Pre-fill RSU inputs */
+        if (params.get('value'))         document.getElementById('rsu-value').value = params.get('value');
+        if (params.get('concentration')) document.getElementById('rsu-concentration').value = params.get('concentration');
+        if (params.get('bracket'))       document.getElementById('rsu-bracket').value = params.get('bracket');
+
+        /* Set toggle answers */
+        rsuAnswers.holdPeriod    = params.get('held') || 'long';
+        rsuAnswers.hasDebt       = params.get('debt') || 'no';
+        rsuAnswers.hasEmergency  = params.get('emergency') || 'yes';
+
+        /* Switch to RSU tab and auto-run recommendation */
+        switchTool('rsu');
+        /* Short delay to let progress dots build, then jump to results */
+        setTimeout(() => {
+          rsuGetRecommendation();
+        }, 100);
+
+      } else if (tool === 'loan') {
+        /* Pre-fill Auto Loan inputs */
+        if (params.get('balance'))  document.getElementById('al-balance').value = params.get('balance');
+        if (params.get('emi'))      document.getElementById('al-emi').value = params.get('emi');
+        if (params.get('rate'))     document.getElementById('al-rate').value = params.get('rate');
+        if (params.get('months'))   document.getElementById('al-months').value = params.get('months');
+        if (params.get('cash'))     document.getElementById('al-cash').value = params.get('cash');
+        if (params.get('return'))   document.getElementById('al-return').value = params.get('return');
+        if (params.get('bracket'))  document.getElementById('al-bracket').value = params.get('bracket');
+
+        /* Set toggle answers */
+        alAnswers.hasEmergency = params.get('emergency') || 'yes';
+        alAnswers.hasOtherDebt = params.get('otherdebt') || 'no';
+
+        /* Switch to Auto Loan tab and auto-run recommendation */
+        switchTool('auto');
+        setTimeout(() => {
+          alGetRecommendation();
+        }, 100);
+
+      } else if (tool === 'rentvsbuy') {
+        /* Pre-fill Rent vs Buy inputs from URL params */
+        if (params.get('price'))     document.getElementById('rvb-price').value     = params.get('price');
+        if (params.get('down'))      document.getElementById('rvb-down').value      = params.get('down');
+        if (params.get('rate'))      document.getElementById('rvb-rate').value      = params.get('rate');
+        if (params.get('term'))      document.getElementById('rvb-term').value      = params.get('term');
+        if (params.get('ptax'))      document.getElementById('rvb-ptax').value      = params.get('ptax');
+        if (params.get('hoa'))       document.getElementById('rvb-hoa').value       = params.get('hoa');
+        if (params.get('maint'))     document.getElementById('rvb-maint').value     = params.get('maint');
+        if (params.get('appr'))      document.getElementById('rvb-appr').value      = params.get('appr');
+        if (params.get('rent'))      document.getElementById('rvb-rent').value      = params.get('rent');
+        if (params.get('rincrease')) document.getElementById('rvb-rincrease').value = params.get('rincrease');
+        if (params.get('invest'))    document.getElementById('rvb-invest').value    = params.get('invest');
+        if (params.get('stay'))      document.getElementById('rvb-stay').value      = params.get('stay');
+        if (params.get('bracket'))   document.getElementById('rvb-bracket').value   = params.get('bracket');
+
+        /* Switch to Rent vs Buy tab and auto-run */
+        switchTool('rvb');
+        setTimeout(() => {
+          rvbUpdateDownSlider();
+          rvbUpdateStaySlider();
+          rvbGetRecommendation();
+        }, 100);
+      }
+
+      /* Show the shared recommendation banner */
+      document.getElementById('shared-banner').style.display = 'flex';
+    }
+
+    /*
+     * ============================================================
+     *  RENT VS BUY CALCULATOR
+     *  4 input steps + 1 results step.
+     *  Calculates true cost of buying vs renting over a user-
+     *  defined time horizon, including equity build, opportunity
+     *  cost of down payment, lifestyle add-ons, and tax deduction.
+     * ============================================================
+     */
+
+    const RVB_TOTAL_STEPS = 4; /* input steps (results is step 5) */
+    let rvbCurrentStep    = 1;
+
+    /* State for itemize toggle and custom add-ons */
+    const rvbState = {
+      itemize:     false,
+      customAddons: [],     /* [{ desc, amount, side }] */
+    };
+
+    /* Chart instance for breakeven chart */
+    let rvbChart = null;
+
+    /* ---- Progress dots (same builder as RSU / Auto Loan) ---- */
+    function rvbBuildProgress() {
+      const container = document.getElementById("rvb-progress");
+      container.innerHTML = "";
+      const totalDots = RVB_TOTAL_STEPS + 1; /* +1 for results */
+
+      for (let i = 1; i <= totalDots; i++) {
+        const dot = document.createElement("div");
+        dot.className = "rsu-dot";
+        dot.id = "rvb-dot-" + i;
+        dot.textContent = i <= RVB_TOTAL_STEPS ? i : "\u2713";
+        container.appendChild(dot);
+        if (i < totalDots) {
+          const line = document.createElement("div");
+          line.className = "rsu-line";
+          line.id = "rvb-line-" + i;
+          container.appendChild(line);
+        }
+      }
+      rvbUpdateProgress(1);
+    }
+
+    function rvbUpdateProgress(step) {
+      const totalDots = RVB_TOTAL_STEPS + 1;
+      for (let i = 1; i <= totalDots; i++) {
+        const dot = document.getElementById("rvb-dot-" + i);
+        dot.classList.remove("done", "active");
+        if (i < step)       dot.classList.add("done");
+        else if (i === step) dot.classList.add("active");
+      }
+      for (let i = 1; i < totalDots; i++) {
+        document.getElementById("rvb-line-" + i).classList.toggle("filled", i < step);
+      }
+    }
+
+    function rvbGoToStep(step) {
+      rvbCurrentStep = step;
+      document.querySelectorAll("#tool-rvb .rvb-step-card").forEach((card) => {
+        card.classList.toggle("active", parseInt(card.dataset.rvbStep, 10) === step);
+      });
+      rvbUpdateProgress(step);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    function rvbNext(step) { rvbGoToStep(step); }
+    function rvbBack(step) { rvbGoToStep(step); }
+
+    /* ---- Slider live-update helpers ---- */
+    function rvbUpdateDownSlider() {
+      const pct   = parseInt(document.getElementById("rvb-down").value, 10);
+      const price = parseFloat(document.getElementById("rvb-price").value) || 0;
+      document.getElementById("rvb-down-label").textContent = pct + "%";
+      const down = Math.round(price * pct / 100);
+      const loan = price - down;
+      document.getElementById("rvb-down-hint").textContent =
+        "That's " + fmt.format(down) + " down — " + fmt.format(loan) + " loan amount";
+    }
+
+    function rvbUpdateApprSlider() {
+      const val = parseFloat(document.getElementById("rvb-appr").value);
+      document.getElementById("rvb-appr-label").textContent = val + "%";
+    }
+
+    function rvbUpdateRIncreaseSlider() {
+      const val = parseFloat(document.getElementById("rvb-rincrease").value);
+      document.getElementById("rvb-rincrease-label").textContent = val + "%";
+    }
+
+    function rvbUpdateStaySlider() {
+      const val = parseInt(document.getElementById("rvb-stay").value, 10);
+      document.getElementById("rvb-stay-label").textContent = val + " yrs";
+      document.getElementById("rvb-stay-hint").textContent = "Planning to stay " + val + " year" + (val !== 1 ? "s" : "");
+    }
+
+    /* ---- Itemize deductions toggle ---- */
+    function rvbToggleItemize(btn) {
+      document.querySelectorAll("#rvb-itemize-toggle .toggle-card")
+        .forEach(c => c.classList.remove("selected"));
+      btn.classList.add("selected");
+      rvbState.itemize = (btn.dataset.value === "yes");
+    }
+
+    /* ---- Lifestyle add-on toggle ---- */
+    function rvbToggleAddon(btn, side) {
+      /* Toggle selected class */
+      const cls = side === "buy" ? "selected-buy" : "selected-rent";
+      btn.classList.toggle(cls);
+    }
+
+    /* Read all active add-on amounts for a given side (buy or rent).
+       Returns net monthly delta — positive = cost, negative = saving. */
+    function rvbGetAddonTotal(side) {
+      const selector = side === "buy" ? '[id^="rvb-addon-buy-"]' : '[id^="rvb-addon-rent-"]';
+      const cls      = side === "buy" ? "selected-buy" : "selected-rent";
+      let total = 0;
+
+      document.querySelectorAll("#tool-rvb " + selector).forEach(card => {
+        if (!card.classList.contains(cls)) return;
+        const input   = card.querySelector(".addon-amount-row input");
+        const amount  = parseFloat(input.value) || 0;
+        const isSaving = input.hasAttribute("data-is-saving");
+        total += isSaving ? -amount : amount;
+      });
+
+      /* Custom add-ons for this side */
+      rvbState.customAddons.forEach(a => {
+        if (a.side === side) total += a.amount;
+      });
+
+      return total;
+    }
+
+    /* ---- Custom add-on row ---- */
+    function rvbAddCustomAddon() {
+      const desc   = document.getElementById("rvb-custom-desc").value.trim();
+      const amount = parseFloat(document.getElementById("rvb-custom-amount").value) || 0;
+      const side   = document.getElementById("rvb-custom-for").value;
+      if (!desc || amount === 0) return;
+
+      const id = Date.now();
+      rvbState.customAddons.push({ id, desc, amount, side });
+
+      /* Render tag */
+      const tagsEl = document.getElementById("rvb-custom-tags");
+      const tag = document.createElement("div");
+      tag.className = "addon-tag";
+      tag.dataset.id = id;
+      tag.innerHTML = `
+        <span>${desc} (+${fmt.format(amount)}/mo for ${side === "buy" ? "Buying" : "Renting"})</span>
+        <button class="tag-remove" onclick="rvbRemoveAddon(${id})" aria-label="Remove">&#215;</button>
+      `;
+      tagsEl.appendChild(tag);
+
+      /* Reset inputs */
+      document.getElementById("rvb-custom-desc").value = "";
+      document.getElementById("rvb-custom-amount").value = 0;
+    }
+
+    function rvbRemoveAddon(id) {
+      rvbState.customAddons = rvbState.customAddons.filter(a => a.id !== id);
+      const tag = document.querySelector(`#rvb-custom-tags [data-id="${id}"]`);
+      if (tag) tag.remove();
+    }
+
+    /* ---- Build a list of toggled add-ons (name + monthly delta) ---- */
+    function rvbGetAddonDetails(side) {
+      const selector = side === "buy" ? '[id^="rvb-addon-buy-"]' : '[id^="rvb-addon-rent-"]';
+      const cls      = side === "buy" ? "selected-buy" : "selected-rent";
+      const items    = [];
+
+      document.querySelectorAll("#tool-rvb " + selector).forEach(card => {
+        if (!card.classList.contains(cls)) return;
+        const name     = card.querySelector(".addon-name").textContent;
+        const input    = card.querySelector(".addon-amount-row input");
+        const amount   = parseFloat(input.value) || 0;
+        const isSaving = input.hasAttribute("data-is-saving");
+        items.push({ name, delta: isSaving ? -amount : amount });
+      });
+
+      rvbState.customAddons.filter(a => a.side === side).forEach(a => {
+        items.push({ name: a.desc, delta: a.amount });
+      });
+
+      return items;
+    }
+
+    /*
+     * ============================================================
+     *  CORE CALCULATIONS
+     * ============================================================
+     */
+
+    /* Monthly mortgage payment — standard amortization formula
+       P = principal, r = monthly rate, n = total months */
+    function rvbMortgagePayment(principal, annualRatePct, termYears) {
+      const r = annualRatePct / 100 / 12;
+      const n = termYears * 12;
+      if (r === 0) return principal / n;
+      return principal * (r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1);
+    }
+
+    /* Run full amortization for N years; return remaining balance and total interest paid */
+    function rvbAmortize(principal, annualRatePct, payment, years) {
+      const r = annualRatePct / 100 / 12;
+      let balance      = principal;
+      let totalInterest = 0;
+      const months     = years * 12;
+
+      for (let m = 0; m < months; m++) {
+        const interest = balance * r;
+        const princ    = Math.min(payment - interest, balance);
+        totalInterest += interest;
+        balance       -= princ;
+        if (balance <= 0) { balance = 0; break; }
+      }
+      return { remainingBalance: balance, totalInterest };
+    }
+
+    /* Future value of a lump sum invested */
+    function rvbFV(amount, annualReturnPct, years) {
+      return amount * Math.pow(1 + annualReturnPct / 100, years);
+    }
+
+    /* Future value of a stream of monthly contributions, growing each year */
+    function rvbFVMonthlyStream(monthlyStart, annualGrowthPct, investReturnPct, years) {
+      /* Invest each monthly payment at the given return; payment grows annually */
+      const monthlyRate = investReturnPct / 100 / 12;
+      let fv = 0;
+      let currentMonthly = monthlyStart;
+
+      for (let y = 0; y < years; y++) {
+        for (let m = 0; m < 12; m++) {
+          const monthsLeft = (years - y) * 12 - m;
+          fv += currentMonthly * Math.pow(1 + monthlyRate, monthsLeft);
+        }
+        currentMonthly *= (1 + annualGrowthPct / 100);
+      }
+      return fv;
+    }
+
+    /*
+     * Main evaluator — computes year-by-year net costs for buying and renting.
+     * Returns arrays for the chart plus summary figures for the results screen.
+     */
+    function rvbEvaluate(inputs) {
+      const {
+        price, downPct, ratePct, termYears,
+        ptaxPct, hoa, maintPct, apprPct,
+        monthlyRent, rentIncreasePct, renterIns,
+        investReturnPct, stayYears,
+        taxBracket, filing, itemize,
+        buyAddonMonthly, rentAddonMonthly,
+      } = inputs;
+
+      /* --- Derived buying inputs --- */
+      const downPayment  = price * downPct / 100;
+      const loanAmount   = price - downPayment;
+      const monthlyMortgage = rvbMortgagePayment(loanAmount, ratePct, termYears);
+
+      /* Standard deduction thresholds (2024) */
+      const stdDeduction = filing === "married" ? 29200 : 14600;
+      /* Approximate annual mortgage interest (first year) */
+      const firstYearInterest = loanAmount * ratePct / 100;
+      /* Tax deduction: only if itemizing AND interest > standard deduction */
+      let monthlyTaxDeduction = 0;
+      if (itemize && firstYearInterest > stdDeduction) {
+        monthlyTaxDeduction = (firstYearInterest * taxBracket / 100) / 12;
+      }
+
+      /* All-in monthly buying cost (year 1) */
+      const monthlyPtax  = price * ptaxPct / 100 / 12;
+      const monthlyMaint = price * maintPct / 100 / 12;
+      const monthlyBuy   = monthlyMortgage + monthlyPtax + hoa + monthlyMaint
+                         + buyAddonMonthly - monthlyTaxDeduction;
+
+      /* All-in monthly renting cost (year 1) */
+      const monthlyRentTotal = monthlyRent + renterIns + rentAddonMonthly;
+
+      /* ---- Year-by-year simulation ---- */
+      const buyNetCosts   = [];  /* cumulative (paid - equity) */
+      const rentNetCosts  = [];  /* cumulative (paid - investment value) */
+
+      let cumBuyPaid       = 0;  /* total cash out the door for buying */
+      let cumRentPaid      = 0;  /* total cash out the door for renting */
+      let loanBalance      = loanAmount;
+      let monthlyRentCur   = monthlyRent + renterIns + rentAddonMonthly;
+      const monthlyR       = ratePct / 100 / 12;
+
+      /* Down payment invested (opportunity cost path) */
+      let investedDown     = downPayment;
+
+      /* Track monthly rent payment for investment accumulation */
+      let extraInvested    = 0;  /* cumulative extra invested from rent savings */
+
+      for (let year = 1; year <= 20; year++) {
+        /* --- Simulate 12 months for this year --- */
+        for (let m = 0; m < 12; m++) {
+          /* Buying: mortgage interest + principal */
+          const interest  = loanBalance * monthlyR;
+          const principal = Math.min(monthlyMortgage - interest, loanBalance);
+          loanBalance    -= principal;
+          if (loanBalance < 0) loanBalance = 0;
+          cumBuyPaid     += monthlyBuy;
+
+          /* Renting: rent grows annually (applied at start of each year, per month = constant within year) */
+          cumRentPaid    += monthlyRentCur;
+        }
+
+        /* Rent increases at start of next year */
+        monthlyRentCur *= (1 + rentIncreasePct / 100);
+
+        /* --- Equity at end of this year --- */
+        const appreciatedPrice = price * Math.pow(1 + apprPct / 100, year);
+        const equity           = appreciatedPrice - loanBalance;
+
+        /* --- Investment value for renter: down payment + any monthly savings --- */
+        /* Down payment grows at investment return */
+        investedDown *= (1 + investReturnPct / 100);
+        /* Also track: if renting is cheaper than buying, renter invests the difference */
+        const diff = monthlyBuy - (monthlyRent + renterIns + rentAddonMonthly);
+        if (diff > 0 && investReturnPct > 0) {
+          /* Approximate: invest the monthly diff for this year (end-of-year simplification) */
+          extraInvested += diff * 12 * Math.pow(1 + investReturnPct / 100 / 12, (20 - year) * 12);
+        }
+        const totalInvestment = investedDown + (diff > 0 ? diff * 12 : 0);
+
+        /* Net cost = what you paid minus what you got back */
+        buyNetCosts.push(Math.max(cumBuyPaid - equity, 0));
+        rentNetCosts.push(Math.max(cumRentPaid - investedDown, 0));
+      }
+
+      /* ---- Breakeven year ---- */
+      let breakevenYear = null;
+      for (let y = 0; y < 20; y++) {
+        if (buyNetCosts[y] <= rentNetCosts[y]) {
+          breakevenYear = y + 1;
+          break;
+        }
+      }
+
+      /* ---- At user's stay year ---- */
+      const stayIdx     = stayYears - 1;
+      const buyAtStay   = buyNetCosts[stayIdx];
+      const rentAtStay  = rentNetCosts[stayIdx];
+      const maxCost     = Math.max(buyAtStay, rentAtStay);
+      const diffPct     = maxCost > 0 ? Math.abs(buyAtStay - rentAtStay) / maxCost * 100 : 0;
+
+      let verdict;
+      if (diffPct < 5)              verdict = "too-close";
+      else if (buyAtStay < rentAtStay) verdict = "buying-wins";
+      else                           verdict = "renting-wins";
+
+      /* --- Summary for results --- */
+      const equityAtStay    = price * Math.pow(1 + apprPct / 100, stayYears) - loanBalance;
+      /* Re-run amortization to get clean interest total at stay year */
+      const amortAtStay     = rvbAmortize(loanAmount, ratePct, monthlyMortgage, stayYears);
+      const totalBuyPaid    = cumBuyPaid; /* already at year 20, need at stayYear */
+      /* Simple recalc for stay year */
+      const buyPaidAtStay   = monthlyBuy * stayYears * 12;
+      const rentPaidAtStay  = (monthlyRent + renterIns + rentAddonMonthly) * 12
+                            * (Math.pow(1 + rentIncreasePct / 100, stayYears) - 1)
+                            / (rentIncreasePct / 100 || 1);
+      const investValAtStay = rvbFV(downPayment, investReturnPct, stayYears);
+
+      return {
+        verdict,
+        breakevenYear,
+        stayYears,
+        buyNetCosts,
+        rentNetCosts,
+        monthlyBuy,
+        monthlyRentTotal,
+        buyAtStay,
+        rentAtStay,
+        equityAtStay: Math.max(equityAtStay, 0),
+        investValAtStay,
+        buyPaidAtStay,
+        rentPaidAtStay: cumRentPaid,  /* approximate */
+        downPayment,
+        loanAmount,
+        monthlyMortgage,
+        buyAddonMonthly,
+        rentAddonMonthly,
+        monthlyTaxDeduction,
+      };
+    }
+
+    /*
+     * ============================================================
+     *  RENDER RESULTS
+     * ============================================================
+     */
+    function rvbGetRecommendation() {
+      /* -- Read all inputs -- */
+      const inputs = {
+        price:          parseFloat(document.getElementById("rvb-price").value) || 500000,
+        downPct:        parseInt(document.getElementById("rvb-down").value, 10),
+        ratePct:        parseFloat(document.getElementById("rvb-rate").value) || 7,
+        termYears:      parseInt(document.getElementById("rvb-term").value, 10),
+        ptaxPct:        parseFloat(document.getElementById("rvb-ptax").value) || 1.2,
+        hoa:            parseFloat(document.getElementById("rvb-hoa").value) || 0,
+        maintPct:       parseFloat(document.getElementById("rvb-maint").value) || 1,
+        apprPct:        parseFloat(document.getElementById("rvb-appr").value) || 3,
+        monthlyRent:    parseFloat(document.getElementById("rvb-rent").value) || 2500,
+        rentIncreasePct:parseFloat(document.getElementById("rvb-rincrease").value) || 3,
+        renterIns:      parseFloat(document.getElementById("rvb-rins").value) || 20,
+        investReturnPct:parseFloat(document.getElementById("rvb-invest").value) || 7,
+        stayYears:      parseInt(document.getElementById("rvb-stay").value, 10),
+        taxBracket:     parseInt(document.getElementById("rvb-bracket").value, 10),
+        filing:         document.getElementById("rvb-filing").value,
+        itemize:        rvbState.itemize,
+        buyAddonMonthly:  rvbGetAddonTotal("buy"),
+        rentAddonMonthly: rvbGetAddonTotal("rent"),
+      };
+
+      const r = rvbEvaluate(inputs);
+
+      /* ---- Section A: Verdict badge ---- */
+      let badgeClass, badgeText;
+      if      (r.verdict === "buying-wins")  { badgeClass = "buying-wins";  badgeText = "Buying Wins"; }
+      else if (r.verdict === "renting-wins") { badgeClass = "renting-wins"; badgeText = "Renting Wins"; }
+      else                                   { badgeClass = "too-close";    badgeText = "Too Close to Call"; }
+
+      /* ---- Section B: Breakeven callout ---- */
+      const stayVsBe    = r.breakevenYear ? (r.stayYears >= r.breakevenYear ? "good" : "bad") : "neutral";
+      const beYearText  = r.breakevenYear
+        ? "You break even at year " + r.breakevenYear
+        : "Buying never becomes cheaper over 20 years";
+      const beSub       = r.breakevenYear
+        ? "Buying becomes cheaper than renting after year " + r.breakevenYear
+          + ". You plan to stay " + r.stayYears + " year" + (r.stayYears !== 1 ? "s" : "") + "."
+        : "Over your planned " + r.stayYears + "-year stay, renting remains cheaper.";
+
+      /* ---- Section C: Headline ---- */
+      const cheaperPath    = r.buyAtStay < r.rentAtStay ? "Buying" : "Renting";
+      const savings        = Math.abs(r.rentAtStay - r.buyAtStay);
+      let headline;
+      if (r.verdict === "too-close") {
+        headline = "Buying and renting cost about the same over " + r.stayYears + " years in your scenario.";
+      } else {
+        headline = cheaperPath + " saves you " + fmt.format(savings) + " over " + r.stayYears + " years";
+        if (r.breakevenYear && r.verdict === "buying-wins") {
+          headline += " — but only after year " + r.breakevenYear + ".";
+        } else if (r.verdict === "renting-wins" && r.investValAtStay > r.downPayment) {
+          headline += ", partly because your down payment grows to "
+                    + fmt.format(Math.round(r.investValAtStay)) + " invested.";
+        } else {
+          headline += ".";
+        }
+      }
+
+      /* ---- Section D: Reason cards ---- */
+      const reasons = [
+        /* Monthly cost breakdown */
+        `<strong>Monthly cost:</strong> Buying all-in is ${fmt.format(Math.round(r.monthlyBuy))}/mo vs renting ${fmt.format(Math.round(r.monthlyRentTotal))}/mo — a difference of ${fmt.format(Math.abs(Math.round(r.monthlyBuy - r.monthlyRentTotal)))}/month.` +
+        (r.monthlyTaxDeduction > 0 ? ` Mortgage interest deduction saves you ${fmt.format(Math.round(r.monthlyTaxDeduction))}/mo.` : ""),
+
+        /* Equity built */
+        `<strong>Equity at year ${r.stayYears}:</strong> If you buy, you'd have built ${fmt.format(Math.round(r.equityAtStay))} in equity through appreciation and mortgage paydown.`,
+
+        /* Opportunity cost */
+        `<strong>Opportunity cost of down payment:</strong> Your ${fmt.format(Math.round(r.downPayment))} down payment, if invested instead at ${inputs.investReturnPct}%, would grow to ${fmt.format(Math.round(r.investValAtStay))} over ${r.stayYears} years.`,
+      ];
+
+      /* Lifestyle add-ons impact (only if any are toggled) */
+      if (r.buyAddonMonthly !== 0 || r.rentAddonMonthly !== 0) {
+        const buySign  = r.buyAddonMonthly >= 0 ? "+" : "";
+        const rentSign = r.rentAddonMonthly >= 0 ? "+" : "";
+        reasons.push(
+          `<strong>Lifestyle add-ons:</strong> Your selected preferences add ${buySign}${fmt.format(Math.round(r.buyAddonMonthly))}/mo to buying and ${rentSign}${fmt.format(Math.round(r.rentAddonMonthly))}/mo to renting.`
+        );
+      }
+
+      /* Tax deduction note */
+      if (inputs.itemize) {
+        reasons.push(
+          r.monthlyTaxDeduction > 0
+            ? `<strong>Tax deduction:</strong> You itemize, and your mortgage interest exceeds your ${inputs.filing === "married" ? "$29,200" : "$14,600"} standard deduction — saving you ${fmt.format(Math.round(r.monthlyTaxDeduction * 12))}/year.`
+            : `<strong>Tax deduction:</strong> You itemize, but your mortgage interest doesn't exceed the ${inputs.filing === "married" ? "$29,200" : "$14,600"} standard deduction, so there's no marginal tax benefit.`
+        );
+      }
+
+      const reasonsHTML = reasons.map(t => `<div class="reason-card">${t}</div>`).join("");
+
+      /* ---- Section E: 10-year comparison table ---- */
+      /* Determine winners in each row */
+      const buyMonthly  = r.monthlyBuy;
+      const rentMonthly = r.monthlyRentTotal;
+      const buyWinsMonthly  = buyMonthly  < rentMonthly;
+      const buyWinsTotal    = r.buyAtStay  < r.rentAtStay;
+      const buyWinsEquity   = r.equityAtStay > r.investValAtStay;
+      const buyWinsNet      = r.buyAtStay  < r.rentAtStay;
+
+      const compareTableHTML = `
+        <table class="compare-table">
+          <thead>
+            <tr>
+              <th></th>
+              <th>&#127968; Buying</th>
+              <th>&#127965; Renting</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="row-label">Monthly payment (all-in)</td>
+              <td class="${buyWinsMonthly ? 'winner' : ''}">${fmt.format(Math.round(buyMonthly))}</td>
+              <td class="${!buyWinsMonthly ? 'winner' : ''}">${fmt.format(Math.round(rentMonthly))}</td>
+            </tr>
+            <tr>
+              <td class="row-label">Total paid over ${r.stayYears} yrs</td>
+              <td class="${r.buyPaidAtStay < r.rentPaidAtStay ? 'winner' : ''}">${fmt.format(Math.round(r.buyPaidAtStay))}</td>
+              <td class="${r.rentPaidAtStay < r.buyPaidAtStay ? 'winner' : ''}">${fmt.format(Math.round(r.rentPaidAtStay))}</td>
+            </tr>
+            <tr>
+              <td class="row-label">Equity / investment value</td>
+              <td class="${buyWinsEquity ? 'winner' : ''}">${fmt.format(Math.round(r.equityAtStay))}</td>
+              <td class="${!buyWinsEquity ? 'winner' : ''}">${fmt.format(Math.round(r.investValAtStay))}</td>
+            </tr>
+            <tr>
+              <td class="row-label">Net cost (paid − equity/invest)</td>
+              <td class="${buyWinsNet ? 'winner' : ''}">${fmt.format(Math.round(r.buyAtStay))}</td>
+              <td class="${!buyWinsNet ? 'winner' : ''}">${fmt.format(Math.round(r.rentAtStay))}</td>
+            </tr>
+            <tr>
+              <td class="row-label">Lifestyle add-ons</td>
+              <td>${r.buyAddonMonthly >= 0 ? "+" : ""}${fmt.format(Math.round(r.buyAddonMonthly))}/mo</td>
+              <td>${r.rentAddonMonthly >= 0 ? "+" : ""}${fmt.format(Math.round(r.rentAddonMonthly))}/mo</td>
+            </tr>
+            <tr>
+              <td class="row-label"><strong>TRUE total net cost</strong></td>
+              <td class="${buyWinsNet ? 'winner' : ''}"><strong>${fmt.format(Math.round(r.buyAtStay))}</strong></td>
+              <td class="${!buyWinsNet ? 'winner' : ''}"><strong>${fmt.format(Math.round(r.rentAtStay))}</strong></td>
+            </tr>
+          </tbody>
+        </table>
+      `;
+
+      /* ---- Section G: Lifestyle impact card (only if add-ons selected) ---- */
+      const buyDetails  = rvbGetAddonDetails("buy");
+      const rentDetails = rvbGetAddonDetails("rent");
+      let lifestyleHTML = "";
+      if (buyDetails.length > 0 || rentDetails.length > 0) {
+        const rows = [
+          ...buyDetails.map(a  => `<div class="lifestyle-row"><span class="li-name">${a.name} (buy)</span><span class="li-val" style="color:var(--primary)">${a.delta >= 0 ? "+" : ""}${fmt.format(a.delta)}/mo</span></div>`),
+          ...rentDetails.map(a => `<div class="lifestyle-row"><span class="li-name">${a.name} (rent)</span><span class="li-val" style="color:var(--success)">${a.delta >= 0 ? "+" : ""}${fmt.format(a.delta)}/mo</span></div>`),
+        ].join("");
+        lifestyleHTML = `
+          <div class="lifestyle-impact-card">
+            <div class="li-title">Your Lifestyle Impact</div>
+            ${rows}
+            <div class="lifestyle-row" style="margin-top:.5rem;border-top:1px solid var(--border);padding-top:.5rem">
+              <span class="li-name"><strong>Add-ons total</strong></span>
+              <span style="font-size:.82rem;color:var(--text-secondary)">Buy: ${r.buyAddonMonthly >= 0 ? "+" : ""}${fmt.format(Math.round(r.buyAddonMonthly))}/mo &nbsp;|&nbsp; Rent: ${r.rentAddonMonthly >= 0 ? "+" : ""}${fmt.format(Math.round(r.rentAddonMonthly))}/mo</span>
+            </div>
+          </div>
+        `;
+      }
+
+      /* ---- Assemble results card ---- */
+      document.getElementById("rvb-results-card").innerHTML = `
+        <div class="verdict-area">
+          <span class="verdict-badge ${badgeClass}">${badgeText}</span>
+          <div class="verdict-headline">${headline}</div>
+        </div>
+
+        <!-- Breakeven callout -->
+        <div class="breakeven-callout">
+          <div class="be-year ${stayVsBe}">${beYearText}</div>
+          <div class="be-sub">${beSub}</div>
+        </div>
+
+        ${reasonsHTML}
+
+        <div class="card-title" style="margin-top:1.5rem">${r.stayYears}-Year Cost Comparison</div>
+        ${compareTableHTML}
+
+        ${lifestyleHTML}
+
+        <div class="save-share-row">
+          <button class="btn-pdf" onclick="downloadPDF('rent_vs_buy')">&#8595; Download PDF</button>
+          <button class="btn-share" id="rvb-share-btn" onclick="rvbCopyShareLink()">&#8998; Copy Share Link</button>
+        </div>
+
+        <button class="btn btn-ghost" onclick="rvbStartOver()">Start Over</button>
+      `;
+
+      /* Reveal chart card and render it */
+      document.getElementById("rvb-chart-card").classList.remove("hidden");
+      rvbRenderChart(r.buyNetCosts, r.rentNetCosts, r.stayYears);
+
+      /* GA4: track tool completion */
+      if (typeof gtag !== "undefined") {
+        gtag("event", "tool_completed", {
+          tool_name: "rent_vs_buy",
+          recommendation: badgeText.toUpperCase().replace(/ /g, "_"),
+        });
+      }
+
+      /* Navigate to results step */
+      rvbGoToStep(5);
+    }
+
+    /*
+     * Breakeven chart — purple line (buying net cost) vs teal line (renting net cost).
+     * Dashed amber vertical line at user's planned stay year.
+     */
+    function rvbRenderChart(buyNetCosts, rentNetCosts, stayYears) {
+      const ctx = document.getElementById("rvbBreakevenChart").getContext("2d");
+      if (rvbChart) rvbChart.destroy();
+
+      Chart.defaults.color = "#8888AA";
+      Chart.defaults.borderColor = "#2A2A40";
+
+      const labels = Array.from({ length: 20 }, (_, i) => "Yr " + (i + 1));
+
+      rvbChart = new Chart(ctx, {
+        type: "line",
+        data: {
+          labels,
+          datasets: [
+            {
+              /* Purple line — buying net cost (goes high initially, curves down as equity builds) */
+              label: "Buying net cost",
+              data: buyNetCosts,
+              borderColor: "#6C63FF",
+              backgroundColor: "rgba(108,99,255,.06)",
+              fill: false,
+              tension: 0.3,
+              pointRadius: 2,
+              borderWidth: 2.5,
+            },
+            {
+              /* Teal line — renting net cost (steadily increases) */
+              label: "Renting net cost",
+              data: rentNetCosts,
+              borderColor: "#00D4AA",
+              backgroundColor: "rgba(0,212,170,.06)",
+              fill: false,
+              tension: 0.3,
+              pointRadius: 2,
+              borderWidth: 2.5,
+            },
+          ],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          interaction: { mode: "index", intersect: false },
+          plugins: {
+            legend: {
+              position: "bottom",
+              labels: { padding: 20, usePointStyle: true, pointStyle: "circle", color: "#8888AA" },
+            },
+            tooltip: {
+              backgroundColor: "#1A1A28",
+              borderColor: "#2A2A40",
+              borderWidth: 1,
+              titleColor: "#EEEEF5",
+              bodyColor: "#8888AA",
+              callbacks: {
+                label: (ctx) => ctx.dataset.label + ": " + fmt.format(Math.round(ctx.parsed.y)),
+              },
+            },
+            /* Annotate user's stay year with a vertical dashed amber line using
+               Chart.js annotation API workaround via afterDraw */
+          },
+          scales: {
+            x: {
+              grid: { color: "rgba(42,42,64,.5)" },
+              ticks: { color: "#4A4A6A" },
+            },
+            y: {
+              grid: { color: "rgba(42,42,64,.5)" },
+              ticks: {
+                color: "#4A4A6A",
+                callback: (v) => "$" + (v >= 1000 ? (v / 1000).toFixed(0) + "k" : v),
+              },
+            },
+          },
+        },
+        plugins: [{
+          /* Custom plugin: draw a dashed amber vertical line at stay year */
+          id: "stayLine",
+          afterDraw(chart) {
+            const ctx   = chart.ctx;
+            const xAxis = chart.scales.x;
+            const yAxis = chart.scales.y;
+            /* stayYears - 1 is the 0-based index of the stay year */
+            const xPos  = xAxis.getPixelForValue(stayYears - 1);
+
+            ctx.save();
+            ctx.beginPath();
+            ctx.setLineDash([6, 4]);
+            ctx.strokeStyle = "#F5A623";
+            ctx.lineWidth   = 2;
+            ctx.moveTo(xPos, yAxis.top);
+            ctx.lineTo(xPos, yAxis.bottom);
+            ctx.stroke();
+
+            /* Label "You're here" */
+            ctx.fillStyle    = "#F5A623";
+            ctx.font         = "bold 11px Inter, sans-serif";
+            ctx.textAlign    = "center";
+            ctx.fillText("You're here", xPos, yAxis.top - 6);
+            ctx.restore();
+          },
+        }],
+      });
+    }
+
+    /* Copy share link for Rent vs Buy */
+    function rvbCopyShareLink() {
+      if (typeof gtag !== "undefined") {
+        gtag("event", "share_link_copied", { tool_name: "rent_vs_buy" });
+      }
+
+      const params = new URLSearchParams({
+        tool:      "rentvsbuy",
+        price:     document.getElementById("rvb-price").value,
+        down:      document.getElementById("rvb-down").value,
+        rate:      document.getElementById("rvb-rate").value,
+        term:      document.getElementById("rvb-term").value,
+        ptax:      document.getElementById("rvb-ptax").value,
+        hoa:       document.getElementById("rvb-hoa").value,
+        maint:     document.getElementById("rvb-maint").value,
+        appr:      document.getElementById("rvb-appr").value,
+        rent:      document.getElementById("rvb-rent").value,
+        rincrease: document.getElementById("rvb-rincrease").value,
+        invest:    document.getElementById("rvb-invest").value,
+        stay:      document.getElementById("rvb-stay").value,
+        bracket:   document.getElementById("rvb-bracket").value,
+      });
+
+      const url = window.location.origin + window.location.pathname + "?" + params.toString();
+      navigator.clipboard.writeText(url).then(() => {
+        const btn = document.getElementById("rvb-share-btn");
+        btn.textContent = "\u2713 Link Copied!";
+        setTimeout(() => { btn.textContent = "\u2398 Copy Share Link"; }, 2000);
+      });
+    }
+
+    /* Reset Rent vs Buy back to step 1 */
+    function rvbStartOver() {
+      /* Clear add-on selections */
+      document.querySelectorAll("#tool-rvb .addon-card")
+        .forEach(c => c.classList.remove("selected-buy", "selected-rent"));
+
+      /* Clear custom add-ons */
+      rvbState.customAddons = [];
+      document.getElementById("rvb-custom-tags").innerHTML = "";
+
+      /* Reset itemize to No */
+      rvbState.itemize = false;
+      document.querySelectorAll("#rvb-itemize-toggle .toggle-card").forEach(c => c.classList.remove("selected"));
+      const noBtn = document.querySelector('#rvb-itemize-toggle [data-value="no"]');
+      if (noBtn) noBtn.classList.add("selected");
+
+      /* Reset all inputs to defaults */
+      document.getElementById("rvb-price").value    = 500000;
+      document.getElementById("rvb-down").value     = 20;
+      document.getElementById("rvb-rate").value     = 7.0;
+      document.getElementById("rvb-term").value     = 30;
+      document.getElementById("rvb-ptax").value     = 1.2;
+      document.getElementById("rvb-hoa").value      = 0;
+      document.getElementById("rvb-maint").value    = 1.0;
+      document.getElementById("rvb-appr").value     = 3;
+      document.getElementById("rvb-rent").value     = 2500;
+      document.getElementById("rvb-rincrease").value = 3;
+      document.getElementById("rvb-rins").value     = 20;
+      document.getElementById("rvb-invest").value   = 7;
+      document.getElementById("rvb-stay").value     = 7;
+      document.getElementById("rvb-bracket").value  = 24;
+      document.getElementById("rvb-filing").value   = "single";
+
+      rvbUpdateDownSlider();
+      rvbUpdateStaySlider();
+
+      /* Hide chart card */
+      document.getElementById("rvb-chart-card").classList.add("hidden");
+      if (rvbChart) { rvbChart.destroy(); rvbChart = null; }
+
+      rvbGoToStep(1);
+    }
+
+    /* ---- URL param handling for shared Rent vs Buy links ---- */
+
+    /*
+     * ============================================================
      *  INITIALIZATION
      *  Run on page load: calculate compound interest with defaults,
      *  build progress dots for RSU and Auto Loan tools.
@@ -3510,6 +5434,12 @@
       rsuBuildProgress();
       alBuildProgress();
       alUpdateReturnSlider();  /* Populate the initial investment preview */
+      rvbBuildProgress();
+      rvbUpdateDownSlider();   /* Populate initial down payment hint */
+      rvbUpdateStaySlider();
+
+      /* Check for shared URL params and auto-fill if present */
+      handleSharedUrl();
     });
   </script>
 </body>

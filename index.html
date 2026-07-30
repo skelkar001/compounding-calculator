@@ -13,8 +13,45 @@
     gtag('config', 'G-0GQCEBE33H');
   </script>
 
+  <!-- ==================== MICROSOFT CLARITY ==================== -->
+  <!-- Session recordings + heatmaps. Free, unlimited.
+       SETUP REQUIRED: replace PASTE_CLARITY_PROJECT_ID_HERE below with the
+       project ID from clarity.microsoft.com (Settings → Setup → it is the
+       short alphanumeric string, e.g. "abcd1234ef"). Until then this script
+       is inert and harmless — it will simply fail to load, breaking nothing. -->
+  <script type="text/javascript">
+    (function(c,l,a,r,i,t,y){
+      c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+      t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
+      y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+    })(window, document, "clarity", "script", "PASTE_CLARITY_PROJECT_ID_HERE");
+  </script>
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>BucketsWealth — Financial Dashboard</title>
+
+  <!-- ==================== SEO & SOCIAL SHARING ==================== -->
+  <title>Rent vs Buy Calculator — See the Real 20-Year Math | BucketsWealth</title>
+  <meta name="description" content="Free rent vs buy calculator that includes the opportunity cost of your down payment, rent increases, maintenance and taxes. See the true 20-year cost of both paths in under two minutes.">
+  <link rel="canonical" href="https://www.bucketswealth.com/">
+  <meta name="robots" content="index, follow">
+
+  <!-- Open Graph — controls how the link renders on Reddit, LinkedIn, Slack, WhatsApp -->
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="BucketsWealth">
+  <meta property="og:url" content="https://www.bucketswealth.com/">
+  <meta property="og:title" content="Renting isn't throwing money away. Here's the real 20-year math.">
+  <meta property="og:description" content="A free rent vs buy calculator that actually accounts for the opportunity cost of your down payment — the variable most calculators ignore.">
+  <meta property="og:image" content="https://www.bucketswealth.com/share-image.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+
+  <!-- Twitter/X card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Renting isn't throwing money away. Here's the real 20-year math.">
+  <meta name="twitter:description" content="A free rent vs buy calculator that actually accounts for the opportunity cost of your down payment.">
+  <meta name="twitter:image" content="https://www.bucketswealth.com/share-image.png">
+
+  <meta name="theme-color" content="#0A0A0F">
 
   <!-- ==================== EXTERNAL DEPENDENCIES ==================== -->
   <!-- Inter font — clean, modern typeface designed for screens -->
@@ -1378,6 +1415,190 @@
       font-family: inherit;
     }
 
+    /*
+     * ==========================================================
+     *  WAITLIST MODAL
+     *  Shown ONCE per visitor, a couple of seconds after they
+     *  reach any results screen. Never shown again after that,
+     *  whether they submit or dismiss (localStorage flag).
+     * ==========================================================
+     */
+    .wl-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(5, 5, 10, .78);
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+      z-index: 1000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 1.25rem;
+    }
+    .wl-overlay.open {
+      display: flex;
+      animation: wlFade .25s ease;
+    }
+    @keyframes wlFade { from { opacity: 0; } to { opacity: 1; } }
+
+    .wl-modal {
+      background: var(--surface);
+      border: 1px solid var(--border-bright);
+      border-radius: var(--radius);
+      box-shadow: 0 24px 64px rgba(0,0,0,.6);
+      max-width: 440px;
+      width: 100%;
+      padding: 2rem 1.75rem 1.75rem;
+      position: relative;
+      animation: wlPop .3s cubic-bezier(.2,.9,.3,1.1);
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+    @keyframes wlPop {
+      from { opacity: 0; transform: translateY(16px) scale(.96); }
+      to   { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    /* Close button — top right */
+    .wl-close {
+      position: absolute;
+      top: .6rem;
+      right: .75rem;
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-size: 1.5rem;
+      line-height: 1;
+      cursor: pointer;
+      font-family: inherit;
+      padding: .25rem .4rem;
+      border-radius: 6px;
+      transition: color .2s;
+    }
+    .wl-close:hover { color: var(--text); }
+
+    .wl-eyebrow {
+      font-size: .7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .09em;
+      color: var(--primary);
+      margin-bottom: .6rem;
+    }
+    .wl-modal h3 {
+      font-size: 1.3rem;
+      font-weight: 700;
+      line-height: 1.3;
+      margin-bottom: .6rem;
+      color: var(--text);
+    }
+    .wl-modal p.wl-sub {
+      font-size: .9rem;
+      color: var(--text-secondary);
+      line-height: 1.55;
+      margin-bottom: 1.25rem;
+    }
+
+    .wl-field { margin-bottom: .85rem; }
+    .wl-field input,
+    .wl-field select {
+      width: 100%;
+      padding: .85rem 1rem;
+      background: var(--elevated);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: var(--text);
+      font-family: inherit;
+      font-size: 1rem;
+      outline: none;
+      transition: border-color .2s, box-shadow .2s;
+    }
+    .wl-field input::placeholder { color: var(--text-muted); }
+    .wl-field input:focus,
+    .wl-field select:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px var(--primary-glow);
+    }
+    .wl-field label {
+      display: block;
+      font-size: .72rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .05em;
+      color: var(--text-muted);
+      margin-bottom: .35rem;
+    }
+
+    .wl-submit {
+      width: 100%;
+      padding: .9rem;
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      border-radius: var(--radius-sm);
+      font-family: inherit;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all .2s ease;
+      box-shadow: 0 4px 14px rgba(108, 99, 255, .35);
+      margin-top: .4rem;
+    }
+    .wl-submit:hover { filter: brightness(1.1); transform: scale(1.02); }
+    .wl-submit:disabled { opacity: .6; cursor: default; transform: none; }
+
+    .wl-nothanks {
+      display: block;
+      width: 100%;
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-family: inherit;
+      font-size: .82rem;
+      cursor: pointer;
+      margin-top: .85rem;
+      padding: .4rem;
+      transition: color .2s;
+    }
+    .wl-nothanks:hover { color: var(--text-secondary); }
+
+    .wl-privacy {
+      font-size: .72rem;
+      color: var(--text-muted);
+      text-align: center;
+      margin-top: .75rem;
+      line-height: 1.5;
+    }
+
+    /* Error message */
+    .wl-error {
+      display: none;
+      font-size: .8rem;
+      color: var(--danger);
+      margin-bottom: .6rem;
+    }
+
+    /* Success state — replaces the form after submit */
+    .wl-success { display: none; text-align: center; padding: .5rem 0; }
+    .wl-success.show { display: block; animation: wlFade .3s ease; }
+    .wl-success .wl-tick {
+      font-size: 2.5rem;
+      color: var(--success);
+      margin-bottom: .5rem;
+      line-height: 1;
+    }
+    .wl-success h3 { margin-bottom: .4rem; }
+
+    /* Hide the modal entirely when printing to PDF */
+    @media print {
+      .wl-overlay { display: none !important; }
+    }
+
+    @media (max-width: 600px) {
+      .wl-modal { padding: 1.75rem 1.25rem 1.5rem; }
+      .wl-modal h3 { font-size: 1.15rem; }
+    }
+
 
     /*
      * ==========================================================
@@ -1858,7 +2079,7 @@
 
           <!-- Calculate button — spans both columns -->
           <div class="full-width">
-            <button class="btn btn-primary" onclick="ciCalculate()">Calculate</button>
+            <button class="btn btn-primary" onclick="ciCalculate(true)">Calculate</button>
           </div>
         </div>
       </div>
@@ -2691,11 +2912,66 @@
   </main>
 
   <!-- ==========================================================
+       WAITLIST MODAL
+       Appears once per visitor, ~2.5s after any results screen.
+       All behaviour lives in the WAITLIST section of the script.
+       ========================================================== -->
+  <div class="wl-overlay" id="wl-overlay" role="dialog" aria-modal="true" aria-labelledby="wl-heading">
+    <div class="wl-modal">
+      <button class="wl-close" id="wl-close" aria-label="Close">&times;</button>
+
+      <!-- FORM STATE -->
+      <div id="wl-form-state">
+        <div class="wl-eyebrow">Early access</div>
+        <h3 id="wl-heading">Want us to track this decision for you?</h3>
+        <p class="wl-sub">
+          We're building a tool that watches rates, rents and prices in your city
+          and tells you when the rent-vs-buy maths actually flips. Join the waitlist
+          and we'll let you know when it's ready.
+        </p>
+
+        <div class="wl-error" id="wl-error">Please enter a valid email address.</div>
+
+        <form id="wl-form" novalidate>
+          <div class="wl-field">
+            <label for="wl-email">Email</label>
+            <input type="email" id="wl-email" name="email" placeholder="you@example.com" autocomplete="email" required>
+          </div>
+
+          <div class="wl-field">
+            <label for="wl-timeline">Where are you in the decision?</label>
+            <select id="wl-timeline" name="timeline" class="wl-field-select">
+              <option value="buying_6mo">Buying within 6 months</option>
+              <option value="buying_6_18mo">Buying in 6–18 months</option>
+              <option value="just_exploring" selected>Just exploring</option>
+              <option value="staying_renter">Planning to keep renting</option>
+            </select>
+          </div>
+
+          <button type="submit" class="wl-submit" id="wl-submit">Join the waitlist</button>
+        </form>
+
+        <button class="wl-nothanks" id="wl-nothanks">No thanks, just here for the calculator</button>
+        <div class="wl-privacy">One email when we launch. No spam, no sharing your address.</div>
+      </div>
+
+      <!-- SUCCESS STATE -->
+      <div class="wl-success" id="wl-success-state">
+        <div class="wl-tick">&#10003;</div>
+        <h3>You're on the list.</h3>
+        <p class="wl-sub" style="margin-bottom:0;">
+          We'll email you the moment there's something worth your time.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================================
        FOOTER
        ========================================================== -->
   <footer class="site-footer">
     <div>For educational purposes only. Not financial advice. Monte Carlo simulations model uncertainty but cannot predict actual outcomes. Consult a qualified financial advisor before making any financial decisions.</div>
-    <div class="credit">Built with Claude Code</div>
+    <div class="credit">&copy; 2026 BucketsWealth</div>
   </footer>
 
   <!-- ==========================================================
@@ -2714,6 +2990,44 @@
       currency: "USD",
       maximumFractionDigits: 0,
     });
+
+    /*
+     * ============================================================
+     *  FUNNEL STEP TRACKING
+     *
+     *  Fires a wizard_step_viewed event so GA4 can show exactly
+     *  where visitors abandon each wizard.
+     *
+     *  IMPORTANT — each step is counted only ONCE per visit. Without
+     *  this de-duplication, a visitor clicking Back then Next would
+     *  be counted twice on the same step, which would make the funnel
+     *  read as though more people reached step 3 than step 2. The Set
+     *  below guarantees a clean, monotonically decreasing funnel.
+     * ============================================================
+     */
+    const stepsAlreadyTracked = new Set();
+
+    /* Cross-tool discovery state — see switchTool() for how these are used.
+       entryTool is set to the first tool the visitor sees; crossToolFired
+       ensures the discovery event is only ever reported once per visit. */
+    let entryTool = null;
+    let crossToolFired = false;
+
+    function trackStep(toolName, step) {
+      const key = toolName + ":" + step;
+      if (stepsAlreadyTracked.has(key)) return;
+      stepsAlreadyTracked.add(key);
+
+      if (typeof gtag !== "undefined") {
+        gtag("event", "wizard_step_viewed", {
+          tool_name: toolName,
+          step_number: step,
+          /* Combined label makes GA4's report readable at a glance,
+             e.g. "rent_vs_buy_step_3" */
+          step_label: toolName + "_step_" + step,
+        });
+      }
+    }
 
     /*
      * ============================================================
@@ -2741,6 +3055,45 @@
       const toolNames = { compound: "compound_calculator", rsu: "rsu_decision", auto: "auto_loan", rvb: "rent_vs_buy" };
       if (typeof gtag !== "undefined") {
         gtag('event', 'tab_switched', { 'tool_name': toolNames[tool] });
+      }
+
+      /*
+       * ---- FUNNEL DENOMINATOR ----
+       * Step 1 of each wizard is the default-active card in the HTML, so
+       * its GoToStep function is never called when someone first opens the
+       * tool. Without this line the funnel would show steps 2, 3 and 4 but
+       * no step 1 to measure them against.
+       *
+       * Read it as: step_1 = "saw the first question",
+       *             step_2 = "engaged enough to advance" (your start rate).
+       */
+      if (tool === "rsu" || tool === "auto" || tool === "rvb") {
+        trackStep(toolNames[tool], 1);
+      }
+
+      /*
+       * ---- CROSS-TOOL DISCOVERY ----
+       * Records the tool a visitor ENTERED on, then fires a distinct event
+       * the first time they voluntarily open a different one.
+       *
+       * Why this matters strategically: if a meaningful share of visitors
+       * who land on Rent vs Buy go on to open a second tool, you don't have
+       * a rent-vs-buy calculator — you have a financial-decisions platform,
+       * and the positioning should change. If almost nobody does, Rent vs
+       * Buy is a standalone product and the other three are maintenance
+       * cost you're carrying for free.
+       */
+      if (entryTool === null) {
+        entryTool = tool;
+      } else if (tool !== entryTool && !crossToolFired) {
+        crossToolFired = true;
+        if (typeof gtag !== "undefined") {
+          gtag('event', 'cross_tool_discovery', {
+            entry_tool:  toolNames[entryTool],
+            second_tool: toolNames[tool],
+            path:        toolNames[entryTool] + "_to_" + toolNames[tool],
+          });
+        }
       }
 
       window.scrollTo({ top: 0, behavior: "smooth" });
@@ -2781,7 +3134,13 @@
      */
     let ciChart = null; /* Chart.js instance reference */
 
-    function ciCalculate() {
+    /*
+     * isUserInitiated distinguishes a real click on "Calculate" from the
+     * automatic run that happens on page load to populate default results.
+     * Without this flag, every single pageview would look like a completed
+     * calculation and the compound tool's numbers would be meaningless.
+     */
+    function ciCalculate(isUserInitiated) {
       /* -- Read inputs -- */
       const principal      = parseFloat(document.getElementById("ci-principal").value) || 0;
       const annualRate     = parseFloat(document.getElementById("ci-rate").value) / 100;
@@ -2848,6 +3207,18 @@
 
       /* Render the Chart.js chart */
       ciRenderChart(labels, nominalData, realData, contribData);
+
+      /* Only track and prompt when a human actually pressed Calculate */
+      if (isUserInitiated) {
+        if (typeof gtag !== "undefined") {
+          gtag("event", "tool_completed", {
+            tool_name: "compound_calculator",
+            recommendation: "n_a",
+          });
+        }
+        /* Waitlist ask — fires once per visitor, 2.5s after results */
+        maybeShowWaitlist("compound_calculator");
+      }
     }
 
     /*
@@ -3030,6 +3401,7 @@
       });
 
       rsuUpdateProgress(step);
+      trackStep("rsu_decision", step);
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
 
@@ -3331,6 +3703,9 @@
 
       /* Navigate to the results step */
       rsuGoToStep(7);
+
+      /* Waitlist ask — fires once per visitor, 2.5s after the verdict */
+      maybeShowWaitlist("rsu_decision");
     }
 
     /*
@@ -3417,6 +3792,7 @@
         card.classList.toggle("active", s === step);
       });
       alUpdateProgress(step);
+      trackStep("auto_loan", step);
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
 
@@ -3832,6 +4208,9 @@
 
       /* Navigate to results step */
       alGoToStep(6);
+
+      /* Waitlist ask — fires once per visitor, 2.5s after the verdict */
+      maybeShowWaitlist("auto_loan");
 
       /* If accelerate, initialize the extra payment slider stats */
       if (r.verdict === "accelerate") {
@@ -4546,6 +4925,22 @@
         });
       }
 
+      /*
+       * Tag the shared link as share traffic.
+       *
+       * Note what we deliberately do NOT do: carry over the sharer's own
+       * utm_source. If someone arrives from your Reddit ad and shares the
+       * link, their friend is NOT a Reddit ad click — counting them as one
+       * would inflate your campaign's apparent performance. baseUrl is
+       * rebuilt from origin + pathname, so the original params are dropped.
+       *
+       * Instead we mark it as share/referral, which means word-of-mouth
+       * shows up as its own channel in GA4. For a test like this, organic
+       * sharing is a strong product signal in its own right.
+       */
+      params.set('utm_source', 'share');
+      params.set('utm_medium', 'referral');
+
       const shareUrl = baseUrl + '?' + params.toString();
 
       /* Copy to clipboard and update button text */
@@ -4566,6 +4961,62 @@
       const params = new URLSearchParams(window.location.search);
       const tool = params.get('tool');
       if (!tool) return;
+
+      /*
+       * ---- LANDING LINKS vs SHARE LINKS ----
+       *
+       * Two different kinds of link arrive at this page with a ?tool= param:
+       *
+       *   1. SHARE links, generated by the Copy Share Link buttons. These
+       *      carry a full set of calculator inputs and should auto-run the
+       *      results and show the "shared recommendation" banner.
+       *
+       *   2. LANDING links, used in ad campaigns. These carry only the tool
+       *      name (plus utm_* tags) and should simply OPEN that tool at
+       *      step 1 — no auto-run, no banner, so the visitor does the
+       *      wizard themselves and we can measure their real drop-off.
+       *
+       * We tell them apart by checking for any calculator input param.
+       * If none are present, it is a landing link.
+       */
+      const INPUT_PARAMS = [
+        'value', 'held', 'debt', 'emergency', 'concentration', 'bracket',
+        'balance', 'emi', 'rate', 'months', 'cash', 'otherdebt', 'return',
+        'price', 'down', 'term', 'ptax', 'hoa', 'maint', 'appr',
+        'rent', 'rincrease', 'invest', 'stay',
+      ];
+      const hasInputs = INPUT_PARAMS.some((p) => params.has(p));
+
+      /* Accepted landing values, including friendly aliases so any
+         reasonable URL you put in an ad works */
+      const LANDING_TOOLS = {
+        rvb:        'rvb',
+        rentvsbuy:  'rvb',
+        rent:       'rvb',
+        rsu:        'rsu',
+        auto:       'auto',
+        loan:       'auto',
+        compound:   'compound',
+      };
+
+      if (!hasInputs && LANDING_TOOLS[tool]) {
+        const target = LANDING_TOOLS[tool];
+        switchTool(target);
+
+        /* Track which tool the ad campaign dropped them on. Useful for
+           confirming your ad links are actually configured correctly —
+           a mismatch here is the most common silent campaign bug. */
+        if (typeof gtag !== "undefined") {
+          gtag('event', 'ad_landing', {
+            tool_name: { compound: 'compound_calculator', rsu: 'rsu_decision',
+                         auto: 'auto_loan', rvb: 'rent_vs_buy' }[target],
+            utm_source: params.get('utm_source') || 'direct',
+          });
+        }
+
+        /* Deliberately NO shared-banner and NO auto-run here. */
+        return;
+      }
 
       if (tool === 'rsu') {
         /* Pre-fill RSU inputs */
@@ -4697,6 +5148,7 @@
         card.classList.toggle("active", parseInt(card.dataset.rvbStep, 10) === step);
       });
       rvbUpdateProgress(step);
+      trackStep("rent_vs_buy", step);
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
 
@@ -5236,6 +5688,9 @@
 
       /* Navigate to results step */
       rvbGoToStep(5);
+
+      /* Waitlist ask — fires once per visitor, 2.5s after the verdict */
+      maybeShowWaitlist("rent_vs_buy");
     }
 
     /*
@@ -5369,6 +5824,12 @@
         bracket:   document.getElementById("rvb-bracket").value,
       });
 
+      /* Tag as share traffic so word-of-mouth appears as its own channel
+         in GA4 rather than being miscredited to the sharer's ad click.
+         See copyShareLink() for the fuller explanation. */
+      params.set("utm_source", "share");
+      params.set("utm_medium", "referral");
+
       const url = window.location.origin + window.location.pathname + "?" + params.toString();
       navigator.clipboard.writeText(url).then(() => {
         const btn = document.getElementById("rvb-share-btn");
@@ -5424,12 +5885,237 @@
 
     /*
      * ============================================================
+     *  WAITLIST MODAL
+     *
+     *  Behaviour (per product spec):
+     *    - Fires only AFTER a visitor sees a results screen
+     *    - Fires on ANY tool's results screen
+     *    - Fires ONCE per visitor, ever — whether they submit,
+     *      dismiss, or close it. Tracked in localStorage.
+     *    - 2.5s delay so they get to read their result first
+     *
+     *  GA4 events fired:
+     *    waitlist_shown      → denominator for conversion rate
+     *    waitlist_submitted  → numerator (THE headline metric)
+     *    waitlist_dismissed  → explicit rejection signal
+     * ============================================================
+     */
+
+    /*
+     * SETUP REQUIRED — paste your form endpoint here.
+     *
+     * Easiest option (Formspree, free):
+     *   1. Go to formspree.io and sign up
+     *   2. Create a new form
+     *   3. Copy the endpoint URL it gives you — it looks like
+     *      https://formspree.io/f/xxxxxxxx
+     *   4. Paste it between the quotes below, replacing the placeholder
+     *
+     * NOTE: Formspree's free tier allows 50 submissions/month. That is
+     * plenty for this test (we expect 10-30), but if you exceed it,
+     * swap in any endpoint that accepts a JSON POST — the code below
+     * does not care which service it is.
+     *
+     * Until a real URL is pasted in, the modal still opens and still
+     * fires all GA4 events, but submissions are logged to the browser
+     * console instead of being saved. So you can test the full flow now.
+     */
+    const WAITLIST_ENDPOINT = "PASTE_FORMSPREE_ENDPOINT_HERE";
+
+    /* localStorage key — bump the version suffix if you ever want to
+       re-show the modal to everyone (e.g. after changing the offer) */
+    const WL_STORAGE_KEY = "bw_waitlist_seen_v1";
+
+    /* Guards against showing twice in a single session, e.g. if the
+       visitor runs two different tools before reloading */
+    let wlShownThisSession = false;
+
+    /* Remembers which tool's results triggered the modal, so the
+       submission tells you WHICH tool drove the signup */
+    let wlTriggerTool = "unknown";
+
+    /* Read the "already seen" flag. Wrapped in try/catch because
+       localStorage throws in Safari private mode and some in-app
+       browsers — we fail open (show the modal) rather than crash. */
+    function wlAlreadySeen() {
+      try {
+        return localStorage.getItem(WL_STORAGE_KEY) === "1";
+      } catch (e) {
+        return false;
+      }
+    }
+
+    function wlMarkSeen() {
+      try {
+        localStorage.setItem(WL_STORAGE_KEY, "1");
+      } catch (e) { /* no-op — nothing we can do, and nothing breaks */ }
+    }
+
+    /*
+     * Called from every tool's results renderer.
+     * Safe to call as often as you like — all the guards live here.
+     */
+    function maybeShowWaitlist(toolName) {
+      if (wlShownThisSession) return;
+      if (wlAlreadySeen())    return;
+
+      wlTriggerTool = toolName || "unknown";
+      wlShownThisSession = true;
+
+      /* Delay so the visitor reads their verdict before being asked
+         for anything. This is the difference between a helpful ask
+         and an annoying popup. */
+      setTimeout(wlOpen, 2500);
+    }
+
+    function wlOpen() {
+      const overlay = document.getElementById("wl-overlay");
+      if (!overlay) return;
+
+      overlay.classList.add("open");
+      wlMarkSeen();  /* mark immediately — seen is seen, even if they bail */
+
+      if (typeof gtag !== "undefined") {
+        gtag("event", "waitlist_shown", { tool_name: wlTriggerTool });
+      }
+      /* Clarity tag — lets you filter session recordings to people
+         who were shown the waitlist */
+      if (typeof clarity !== "undefined") {
+        clarity("set", "waitlist", "shown");
+      }
+    }
+
+    function wlClose(reason) {
+      const overlay = document.getElementById("wl-overlay");
+      if (!overlay) return;
+      overlay.classList.remove("open");
+
+      /* Only count an explicit no as a dismissal — not a close
+         that happens after a successful submit */
+      if (reason && reason !== "submitted" && typeof gtag !== "undefined") {
+        gtag("event", "waitlist_dismissed", {
+          tool_name: wlTriggerTool,
+          method: reason,
+        });
+      }
+    }
+
+    /* Basic email sanity check — deliberately permissive.
+       Rejecting valid-but-unusual addresses costs you real signups. */
+    function wlValidEmail(value) {
+      return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(value.trim());
+    }
+
+    function wlSubmit(e) {
+      e.preventDefault();
+
+      const emailEl    = document.getElementById("wl-email");
+      const timelineEl = document.getElementById("wl-timeline");
+      const errorEl    = document.getElementById("wl-error");
+      const submitEl   = document.getElementById("wl-submit");
+      const email      = emailEl.value.trim();
+
+      if (!wlValidEmail(email)) {
+        errorEl.style.display = "block";
+        emailEl.focus();
+        return;
+      }
+      errorEl.style.display = "none";
+
+      submitEl.disabled = true;
+      submitEl.textContent = "Joining…";
+
+      /* Capture the acquisition channel alongside the email, so you
+         can tell whether Reddit or Google produced better-quality
+         signups — not just more of them. */
+      const urlParams = new URLSearchParams(window.location.search);
+      const payload = {
+        email:       email,
+        timeline:    timelineEl.value,
+        tool:        wlTriggerTool,
+        utm_source:  urlParams.get("utm_source")   || "direct",
+        utm_medium:  urlParams.get("utm_medium")   || "none",
+        utm_campaign:urlParams.get("utm_campaign") || "none",
+        submitted_at: new Date().toISOString(),
+      };
+
+      /* Fire analytics BEFORE the network call. If the endpoint is
+         slow or misconfigured, you still capture the intent signal —
+         which is what the test is actually measuring. */
+      if (typeof gtag !== "undefined") {
+        gtag("event", "waitlist_submitted", {
+          tool_name: wlTriggerTool,
+          timeline:  payload.timeline,
+        });
+      }
+      if (typeof clarity !== "undefined") {
+        clarity("set", "waitlist", "submitted");
+      }
+
+      const showSuccess = () => {
+        document.getElementById("wl-form-state").style.display = "none";
+        document.getElementById("wl-success-state").classList.add("show");
+        /* Auto-close after a beat so they get back to their results */
+        setTimeout(() => wlClose("submitted"), 2600);
+      };
+
+      /* No endpoint configured yet — log and still show success so
+         you can test the full flow before wiring up the form service */
+      if (!WAITLIST_ENDPOINT || WAITLIST_ENDPOINT.indexOf("PASTE_") === 0) {
+        console.log("[waitlist] No endpoint configured. Payload:", payload);
+        showSuccess();
+        return;
+      }
+
+      fetch(WAITLIST_ENDPOINT, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Accept": "application/json" },
+        body: JSON.stringify(payload),
+      })
+        .then(showSuccess)
+        .catch((err) => {
+          /* Never show the visitor an error for a waitlist signup —
+             we already recorded the intent, which is the data we need */
+          console.warn("[waitlist] Submission failed:", err);
+          showSuccess();
+        });
+    }
+
+    /* Wire up the modal's controls. Called once on page load. */
+    function wlInit() {
+      const form      = document.getElementById("wl-form");
+      const closeBtn  = document.getElementById("wl-close");
+      const noThanks  = document.getElementById("wl-nothanks");
+      const overlay   = document.getElementById("wl-overlay");
+
+      if (form)     form.addEventListener("submit", wlSubmit);
+      if (closeBtn) closeBtn.addEventListener("click", () => wlClose("close_button"));
+      if (noThanks) noThanks.addEventListener("click", () => wlClose("no_thanks"));
+
+      /* Click the dark area outside the card to dismiss */
+      if (overlay) {
+        overlay.addEventListener("click", (e) => {
+          if (e.target === overlay) wlClose("overlay_click");
+        });
+      }
+
+      /* Escape key to dismiss */
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape" && overlay && overlay.classList.contains("open")) {
+          wlClose("escape_key");
+        }
+      });
+    }
+
+    /*
+     * ============================================================
      *  INITIALIZATION
      *  Run on page load: calculate compound interest with defaults,
      *  build progress dots for RSU and Auto Loan tools.
      * ============================================================
      */
     window.addEventListener("DOMContentLoaded", () => {
+      wlInit();
       ciCalculate();
       rsuBuildProgress();
       alBuildProgress();
@@ -5438,8 +6124,16 @@
       rvbUpdateDownSlider();   /* Populate initial down payment hint */
       rvbUpdateStaySlider();
 
-      /* Check for shared URL params and auto-fill if present */
+      /* Check for shared URL params and auto-fill if present.
+         This may call switchTool(), which sets entryTool. */
       handleSharedUrl();
+
+      /* If no URL param sent them anywhere, they landed on the default
+         Compound tab — record that as their entry point so cross-tool
+         discovery is measured from the right starting position. */
+      if (entryTool === null) {
+        entryTool = "compound";
+      }
     });
   </script>
 </body>

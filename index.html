@@ -2006,11 +2006,15 @@
     <div class="header-inner">
       <div class="logo">Buckets<span>Wealth</span></div>
       <div style="display:flex;align-items:center;gap:12px;">
+        <!-- Rent vs Buy is deliberately FIRST and active by default — it is
+             the tool the site is positioned around and the one ads point to.
+             If you reorder these buttons, update the toolIndex map in
+             switchTool() to match, or the wrong pill will highlight. -->
         <div class="pill-toggle">
-          <button class="active" onclick="switchTool('compound')">Compound Calculator</button>
+          <button class="active" onclick="switchTool('rvb')">Rent vs Buy</button>
+          <button onclick="switchTool('compound')">Compound Calculator</button>
           <button onclick="switchTool('rsu')">RSU Decision</button>
           <button onclick="switchTool('auto')">Auto Loan Optimizer</button>
-          <button onclick="switchTool('rvb')">Rent vs Buy</button>
         </div>
         <a href="feedback.html" class="feedback-link" onclick="if(typeof gtag!=='undefined')gtag('event','feedback_page_visited',{})">Give Feedback</a>
       </div>
@@ -2022,7 +2026,7 @@
     <!-- ==========================================================
          TOOL 1: COMPOUND INTEREST CALCULATOR
          ========================================================== -->
-    <section id="tool-compound" class="tool-section visible">
+    <section id="tool-compound" class="tool-section">
 
       <div class="section-header">
         <h2>Compound Interest Calculator</h2>
@@ -2474,7 +2478,8 @@
          Same step-by-step card flow as RSU and Auto Loan.
          4 input steps + 1 results step = 5 dots total.
          ========================================================== -->
-    <section id="tool-rvb" class="tool-section">
+    <!-- Visible by default — this is the site's landing tool. -->
+    <section id="tool-rvb" class="tool-section visible">
 
       <div class="section-header">
         <h2>Rent vs Buy Calculator</h2>
@@ -3041,8 +3046,9 @@
       const pills = document.querySelectorAll(".pill-toggle button");
       pills.forEach((p) => p.classList.remove("active"));
 
-      /* Map tool name → pill index */
-      const toolIndex = { compound: 0, rsu: 1, auto: 2, rvb: 3 };
+      /* Map tool name → pill index. Must match the button order in the
+         header's .pill-toggle markup. */
+      const toolIndex = { rvb: 0, compound: 1, rsu: 2, auto: 3 };
       pills[toolIndex[tool]].classList.add("active");
 
       /* Show/hide all four sections */
@@ -3056,6 +3062,21 @@
       if (typeof gtag !== "undefined") {
         gtag('event', 'tab_switched', { 'tool_name': toolNames[tool] });
       }
+
+      /*
+       * ---- CHART RESIZE FIX ----
+       * Charts that were built while their section was hidden can end up
+       * sized to zero, because a display:none container has no dimensions.
+       * Now that Rent vs Buy is the default tab, the compound chart is
+       * always built hidden — so we tell Chart.js to re-measure whenever
+       * a tab becomes visible. Cheap, and prevents a blank chart.
+       */
+      setTimeout(() => {
+        if (tool === "compound" && typeof ciChart !== "undefined" && ciChart) ciChart.resize();
+        if (tool === "rvb"      && typeof rvbChart !== "undefined" && rvbChart) rvbChart.resize();
+        if (tool === "rsu"      && typeof rsuMCChart !== "undefined" && rsuMCChart) rsuMCChart.resize();
+        if (tool === "auto"     && typeof alMCChart !== "undefined" && alMCChart) alMCChart.resize();
+      }, 60);
 
       /*
        * ---- FUNNEL DENOMINATOR ----
@@ -6129,10 +6150,13 @@
       handleSharedUrl();
 
       /* If no URL param sent them anywhere, they landed on the default
-         Compound tab — record that as their entry point so cross-tool
-         discovery is measured from the right starting position. */
+         Rent vs Buy tab. Record that as their entry point, and fire its
+         step-1 event — switchTool() never ran, so nothing else would.
+         Without this the Rent vs Buy funnel would have no denominator
+         for the majority of visitors. */
       if (entryTool === null) {
-        entryTool = "compound";
+        entryTool = "rvb";
+        trackStep("rent_vs_buy", 1);
       }
     });
   </script>

@@ -15,16 +15,14 @@
 
   <!-- ==================== MICROSOFT CLARITY ==================== -->
   <!-- Session recordings + heatmaps. Free, unlimited.
-       SETUP REQUIRED: replace PASTE_CLARITY_PROJECT_ID_HERE below with the
-       project ID from clarity.microsoft.com (Settings → Setup → it is the
-       short alphanumeric string, e.g. "abcd1234ef"). Until then this script
-       is inert and harmless — it will simply fail to load, breaking nothing. -->
+       Project ID configured 5 Aug 2026 — same project as index.html.
+       View at clarity.microsoft.com → Vantage → Recordings. -->
   <script type="text/javascript">
     (function(c,l,a,r,i,t,y){
       c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
       t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
       y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
-    })(window, document, "clarity", "script", "PASTE_CLARITY_PROJECT_ID_HERE");
+    })(window, document, "clarity", "script", "xyd6ag4bls");
   </script>
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -1635,6 +1633,45 @@
       margin-bottom: .6rem;
     }
 
+    /* Optional free-text note on the signup form */
+    .wl-field textarea {
+      width: 100%;
+      padding: .85rem 1rem;
+      background: var(--elevated);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: var(--text);
+      font-family: inherit;
+      font-size: 1rem;
+      outline: none;
+      resize: vertical;
+      min-height: 64px;
+      transition: border-color .2s, box-shadow .2s;
+    }
+    .wl-field textarea:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px var(--primary-glow);
+    }
+    .wl-optional {
+      font-weight: 400; text-transform: none; letter-spacing: 0;
+      color: var(--text-muted); font-size: .68rem;
+    }
+
+    /* One-tap exit survey — shown when someone declines the waitlist. */
+    .wl-survey { display: none; }
+    .wl-survey.show { display: block; animation: wlFade .3s ease; }
+    .wl-chips { display: flex; flex-direction: column; gap: .55rem; margin-bottom: .4rem; }
+    .wl-chips button {
+      width: 100%; text-align: left;
+      background: var(--elevated);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: .8rem .95rem;
+      font-family: inherit; font-size: .95rem; font-weight: 500;
+      color: var(--text); cursor: pointer; transition: all .16s;
+    }
+    .wl-chips button:hover { border-color: var(--primary); }
+
     /* Success state — replaces the form after submit */
     .wl-success { display: none; text-align: center; padding: .5rem 0; }
     .wl-success.show { display: block; animation: wlFade .3s ease; }
@@ -2083,8 +2120,6 @@
       <button class="tab"        data-tab="auto" onclick="switchTool('auto')"><span class="ti">⇅</span><span>Auto Loan</span></button>
 
       <div class="sb-spacer"></div>
-      <a href="feedback.html" class="tab" onclick="if(typeof gtag!=='undefined')gtag('event','feedback_page_visited',{})">
-        <span class="ti">✎</span><span>Feedback</span></a>
       <div class="sb-foot">Free calculators. Nothing you enter leaves your browser. Educational only — not financial advice.</div>
     </nav>
 
@@ -3022,6 +3057,11 @@
             </select>
           </div>
 
+          <div class="wl-field">
+            <label for="wl-note">What would make this genuinely useful? <span class="wl-optional">optional</span></label>
+            <textarea id="wl-note" placeholder="Anything we should know…"></textarea>
+          </div>
+
           <button type="submit" class="wl-submit" id="wl-submit">Join the waitlist</button>
         </form>
 
@@ -3036,6 +3076,20 @@
         <p class="wl-sub" style="margin-bottom:0;">
           We'll email you the moment there's something worth your time.
         </p>
+      </div>
+
+      <!-- EXIT SURVEY — shown instead of closing when someone declines -->
+      <div class="wl-survey" id="wl-survey-state">
+        <div class="wl-eyebrow">One quick question</div>
+        <h3>What stopped you?</h3>
+        <p class="wl-sub">One tap and we'll leave you alone. This genuinely helps.</p>
+        <div class="wl-chips">
+          <button onclick="submitDismiss('not_relevant')">Not relevant to my situation</button>
+          <button onclick="submitDismiss('privacy')">Don't want to share financial details</button>
+          <button onclick="submitDismiss('interesting_too_early')">Interesting, but too early</button>
+          <button onclick="submitDismiss('just_browsing')">Just browsing</button>
+        </div>
+        <button class="wl-nothanks" onclick="wlClose('survey_skipped')">Skip</button>
       </div>
     </div>
   </div>
@@ -6009,25 +6063,17 @@
      */
 
     /*
-     * SETUP REQUIRED — paste your form endpoint here.
+     * Waitlist + exit-survey destination. Formspree form "Vantage
+     * waitlist", configured 5 Aug 2026. Same endpoint as index.html,
+     * so both pages feed one inbox — entries are distinguished by the
+     * `product` and `type` fields in the payload.
      *
-     * Easiest option (Formspree, free):
-     *   1. Go to formspree.io and sign up
-     *   2. Create a new form
-     *   3. Copy the endpoint URL it gives you — it looks like
-     *      https://formspree.io/f/xxxxxxxx
-     *   4. Paste it between the quotes below, replacing the placeholder
-     *
-     * NOTE: Formspree's free tier allows 50 submissions/month. That is
-     * plenty for this test (we expect 10-30), but if you exceed it,
-     * swap in any endpoint that accepts a JSON POST — the code below
-     * does not care which service it is.
-     *
-     * Until a real URL is pasted in, the modal still opens and still
-     * fires all GA4 events, but submissions are logged to the browser
-     * console instead of being saved. So you can test the full flow now.
+     * NOTE: Formspree's free tier allows 50 submissions/month. Plenty
+     * for this test (expect 10-30), but if you exceed it, swap in any
+     * endpoint that accepts a JSON POST — the code doesn't care which
+     * service it is.
      */
-    const WAITLIST_ENDPOINT = "PASTE_FORMSPREE_ENDPOINT_HERE";
+    const WAITLIST_ENDPOINT = "https://formspree.io/f/mwlepqao";
 
     /* localStorage key — bump the version suffix if you ever want to
        re-show the modal to everyone (e.g. after changing the offer) */
@@ -6139,9 +6185,12 @@
          can tell whether Reddit or Google produced better-quality
          signups — not just more of them. */
       const urlParams = new URLSearchParams(window.location.search);
+      const noteEl = document.getElementById('wl-note');
       const payload = {
+        type:        'waitlist_signup',
         email:       email,
         timeline:    timelineEl.value,
+        note:        noteEl ? noteEl.value.trim() : '',
         product:     'tools',
         tool:        wlTriggerTool,
         utm_source:  urlParams.get("utm_source")   || "direct",
@@ -6192,6 +6241,44 @@
         });
     }
 
+    /* ---------- EXIT SURVEY ----------
+       Rather than just closing on "no thanks", ask one question. People
+       who decline are the most informative group in a test this small,
+       and the only group a waitlist count says nothing about. */
+    function showDismissSurvey() {
+      document.getElementById('wl-form-state').style.display = 'none';
+      document.getElementById('wl-survey-state').classList.add('show');
+      if (typeof gtag !== "undefined") {
+        gtag('event', 'waitlist_dismissed', { tool_name: wlTriggerTool, method: 'no_thanks' });
+        gtag('event', 'exit_survey_shown', {});
+      }
+    }
+
+    function submitDismiss(reason) {
+      if (typeof gtag !== "undefined") gtag('event', 'exit_survey_answered', { reason: reason });
+      if (typeof clarity !== "undefined") { try { clarity('set', 'exit_reason', reason); } catch (e) {} }
+
+      const q = new URLSearchParams(window.location.search);
+      const payload = {
+        type:       'exit_survey',
+        reason:     reason,
+        product:    'tools',
+        tool:       wlTriggerTool,
+        utm_source: q.get('utm_source') || 'direct',
+        submitted_at: new Date().toISOString(),
+      };
+      if (WAITLIST_ENDPOINT && WAITLIST_ENDPOINT.indexOf('PASTE_') !== 0) {
+        fetch(WAITLIST_ENDPOINT, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+          body: JSON.stringify(payload),
+        }).catch(() => {});
+      } else {
+        console.log('[exit survey] No endpoint configured. Payload:', payload);
+      }
+      wlClose('survey_answered');
+    }
+
     /* Wire up the modal's controls. Called once on page load. */
     function wlInit() {
       const form      = document.getElementById("wl-form");
@@ -6201,7 +6288,7 @@
 
       if (form)     form.addEventListener("submit", wlSubmit);
       if (closeBtn) closeBtn.addEventListener("click", () => wlClose("close_button"));
-      if (noThanks) noThanks.addEventListener("click", () => wlClose("no_thanks"));
+      if (noThanks) noThanks.addEventListener("click", showDismissSurvey);
 
       /* Click the dark area outside the card to dismiss */
       if (overlay) {

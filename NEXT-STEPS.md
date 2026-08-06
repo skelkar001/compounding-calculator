@@ -1,214 +1,217 @@
-# Vantage — Build & Test Guide
+# Vantage — Where I Am & What's Next
 
-Last updated: 30 July 2026
-
----
-
-## ⚠️ FIRST: two renames (30 seconds, do this before testing)
-
-The new files are sitting alongside the old ones so nothing was destroyed.
-In Finder, inside this folder:
-
-1. Rename `index.html` → `tools.html`
-2. Rename `index-new.html` → `index.html`
-
-That's it. After the rename:
-
-| File | What it is |
-|---|---|
-| `index.html` | **Vantage** — the product (was `index-new.html`) |
-| `tools.html` | The 3 calculators (was `index.html`) |
-| `feedback.html` | Feedback form, re-themed |
-| `CNAME` | Domain config — **never touch** |
+Last updated: 5 August 2026
 
 ---
 
-## Test locally BEFORE uploading anything
+## ✅ Done
 
-Double-click `index.html`. It opens in your browser from your own machine —
-the live site is untouched until you deliberately upload.
+- Vantage built as a desktop web app, deployed and live at bucketswealth.com
+- Three calculators live at `/tools.html` with matching sidebar
+- Sample mode ("See a sample week") working
+- Waitlist popup working
+- **GA4 fully configured and verified** — 14-month retention, Enhanced
+  measurement on, `waitlist_submitted` and `app_entered` starred as key
+  events, live data confirmed flowing
 
-### A. Landing page
+## ❌ Not done — this is what's left
 
-- [ ] Dark espresso hero, "Vantage / One decision a week. That's it."
-- [ ] Two buttons: **Get started** and **See a sample week**
-- [ ] A white preview card on the right showing an example move
-- [ ] Prototype notice visible under the buttons
-
-### B. Sample mode (this is the critical new path)
-
-- [ ] Click **See a sample week**
-- [ ] Lands straight in the app — no data entry at all
-- [ ] Yellow banner at top: "You're viewing sample numbers"
-- [ ] "This week's move" card shows a real, specific recommendation
-- [ ] **See the math** expands the reasoning
-- [ ] Left sidebar: Home / Net worth / Goals / Tools / Profile
-- [ ] Net worth screen shows populated assets, liabilities, composition bar
-- [ ] Goals screen shows 3 goals with progress rings
-- [ ] After ~4 seconds the waitlist modal appears
-- [ ] Click **Use my own numbers** → banner clears, onboarding starts
-
-### C. Real onboarding
-
-- [ ] Click **Get started** from the landing page
-- [ ] Stage 1: form is **empty** (not pre-filled with sample data)
-- [ ] The Plaid card is clearly labelled **DEMO ONLY**
-- [ ] Click through the demo connection → balances fill in
-- [ ] "Run basic optimizer" → quick wins screen
-- [ ] "Next: set your goals" → goal rows
-- [ ] "Project my plan" → projection with shortfall/surplus and 3 strategies
-- [ ] "See my optimized moves" → enters the app
-
-### D. Tools page
-
-- [ ] Sidebar → **Tools** → opens `tools.html`
-- [ ] **Same espresso sidebar** as the main app — should feel like a section
-      of Vantage, not a different website
-- [ ] Sidebar shows: Back to Vantage, then a TOOLS group with the three
-      calculators as nav items
-- [ ] Clicking each one switches the calculator and highlights correctly
-- [ ] Page is cream/coral, **not** dark purple
-- [ ] Complete a Rent vs Buy run → **charts are visible** (they were dark-themed before)
-- [ ] "Back to Vantage" returns to the main app
-- [ ] Waitlist modal here pitches Vantage, not a calculator
-
-### E. Waitlist behaviour
-
-- [ ] Appears once, then never again — **including across both pages**
-- [ ] To reset for repeat testing: open console (Cmd+Opt+J) and run `localStorage.clear()`
-
-### F. Responsive
-
-- [ ] Narrow the window to phone width — sidebar becomes a top bar, columns stack
+- Clarity not connected (recording nothing)
+- Formspree not connected (**emails are not being saved**)
+- Search Console not set up
+- 3 updated files not yet deployed (exit survey, feedback removal)
+- Ads not started
 
 ---
 
-## What changed from the mobile prototype
+# PHASE A ✅ COMPLETE
 
-**Ported unchanged:** the entire rules engine (`runEngine`), tax brackets,
-projections, gap analysis, strategy ranking, goal maths. The recommendations
-are identical to your prototype.
+## Step 1 — Microsoft Clarity ✅
+Project ID `xyd6ag4bls`, wired into `index.html` and `tools.html`.
 
-**Rebuilt for desktop:** phone frame removed, bottom tabs → left sidebar,
-home screen → two columns, onboarding stages → wide centred cards,
-sub-screens → modal overlays.
+## Step 2 — Formspree ✅
+Form "Vantage waitlist", endpoint `https://formspree.io/f/mwlepqao`,
+wired into both pages. Free tier = 50 submissions/month.
 
-**Added:** sample mode, full funnel instrumentation, waitlist, trust
-messaging, Tools link.
+## Step 3 — Google Search Console ✅ DONE
 
-**Removed — and why:**
+Already set up and verified. Google auto-verified ownership using the
+existing GA4 tag on the site, so no meta tag was needed.
 
-- **The Gemini AI chat.** It required each visitor to paste in their own
-  Google API key, which is a non-starter for public traffic. Also the
-  original source for it was truncated when I fetched the repo.
-- **The compound interest calculator.** Vantage projects net worth already,
-  and it was the weakest of the four. Its markup is still in `tools.html`
-  but unreachable — safe to delete whenever.
-
-**Reimplemented** (the fetch from GitHub truncated the last ~30 lines):
-`toast()`, and the cadence helpers (`cadenceDescription`, `cadenceEyebrow`,
-`cadenceShort`, `updateCadPreview`, `saveCadence`). Behaviour matches what
-the prototype UI describes, but compare against your original if the wording
-matters to you.
+Optional while you're there: paste `https://www.bucketswealth.com/` into
+the **Inspect any URL** bar → **Request indexing**. Repeat for
+`https://www.bucketswealth.com/tools.html`.
 
 ---
 
-## Deploy when local testing passes
+# PHASE B ✅ COMPLETE — files updated
 
-1. Back up: duplicate this whole folder as `backup-before-vantage`
-2. GitHub → **Add file → Upload files**
-3. Drag in: `index.html`, `tools.html`, `feedback.html`, `NEXT-STEPS.md`
-4. Commit message: `Pivot to Vantage — decision engine as main product`
-5. **Then delete the old file if GitHub still lists a stale one** — check the
-   repo file list looks like the table at the top of this doc
-6. Wait for the green tick in the **Actions** tab
-7. Re-run the whole checklist above on the live site
+All placeholders replaced. Nothing left to configure in the code.
 
-Rollback: GitHub → Commits → the commit before yours → **Revert**.
+**→ Next action is PHASE C: upload to GitHub.**
 
 ---
 
-## Still to configure (nothing works without these)
+# PHASE C — Deploy (~10 min)
 
-| Placeholder | Where | Get it from |
-|---|---|---|
-| `PASTE_CLARITY_PROJECT_ID_HERE` | `index.html`, `tools.html`, `feedback.html` | clarity.microsoft.com → Settings → Setup |
-| `PASTE_FORMSPREE_ENDPOINT_HERE` | `index.html` **and** `tools.html` | formspree.io → new form |
-| `share-image.png` | repo root | 1200×630 PNG, Canva |
+1. Duplicate the folder → rename the copy `backup-<today's date>`
+2. GitHub repo → **Add file → Upload files**
+3. Drag in **four files only**:
+   - `index.html`
+   - `tools.html`
+   - `feedback.html`
+   - `NEXT-STEPS.md`
 
-Until pasted, the modal still opens and all events still fire — submissions
-just log to the browser console. So you can test the full flow today.
+   Do NOT upload `vantage-prototype-main/`, the `.zip`, or `.DS_Store`
+4. Commit message: `Connect analytics, add exit survey, remove feedback form`
+5. **Actions** tab → wait for the green tick (~2 min)
 
-### GA4 settings (no code)
+Nothing changes on GoDaddy — ever. `CNAME` already handles the domain.
 
-- [ ] Admin → Data retention → 2 months → **14 months** (do this first)
-- [ ] Admin → Data streams → **Enhanced measurement** on
-- [ ] Admin → Key events → add `waitlist_submitted`, `app_entered`
+**Rollback if needed:** GitHub → Commits → previous commit → **Revert**
 
 ---
 
-## The funnel you're now measuring
+# PHASE D — Verify live (~15 min)
+
+On `www.bucketswealth.com` in a clean browser window (no ad blockers):
+
+- [ ] Landing page loads
+- [ ] **See a sample week** → populated app with a real move
+- [ ] Waitlist popup appears after ~4s
+- [ ] Submit a real email → **check it arrives in Formspree** ← proves the chain
+- [ ] `localStorage.clear()` in console, reload, reach a move again
+- [ ] Click **No thanks** → "What stopped you?" survey appears
+- [ ] Pick a reason → modal closes
+- [ ] Sidebar → **Tools** → three calculators, charts visible
+- [ ] `bucketswealth.com/feedback.html` → redirects to Vantage (no Google Form)
+- [ ] Clarity → **Recordings** → your session appears (~10 min lag)
+- [ ] Search Console → click **Verify** → succeeds
+- [ ] Search Console → submit `https://www.bucketswealth.com/` for indexing
+
+Once this passes, the plumbing is complete and you can spend money.
+
+---
+
+# PHASE E — Launch ads ($180)
+
+## Before you start
+
+Note today's date. Everything in GA4 before it is your own testing and
+should be excluded when reading results.
+
+## Reddit — $150 over 11 days ($14/day)
+
+1. **ads.reddit.com** → sign up → **Create campaign**
+2. Objective: **Traffic**
+3. Bid strategy: **CPC** (manual), max bid **$1.50**
+4. Location: **United States only**
+5. Targeting: choose **Communities**, not interests. Add:
+   `r/personalfinance`, `r/HENRYfinance`, `r/financialindependence`,
+   `r/MiddleClassFinance`
+6. Create **two ads**:
+
+   **Ad A — the restraint angle**
+   > You earn $200K and still don't know if you're doing this right.
+   > Vantage gives you one ranked money move a week. That's it.
+
+   **Ad B — the anti-app angle**
+   > Not another budgeting app. Vantage looks at your whole picture and
+   > tells you the single highest-impact move this week — and shows the math.
+
+7. Landing URLs — **split the budget between these two**:
 
 ```
-vantage_landing
-   ├── sample_mode_started ──→ app_entered ──→ waitlist_shown → waitlist_submitted
-   └── onboarding_started
-         └── onboarding_stage_viewed (1 → 2 → 3 → 4)
-               └── app_entered ──→ waitlist_shown → waitlist_submitted
+Ad A → https://www.bucketswealth.com/?utm_source=reddit&utm_medium=cpc&utm_campaign=vantage_test&utm_content=a
+
+Ad B → https://www.bucketswealth.com/?demo=1&utm_source=reddit&utm_medium=cpc&utm_campaign=vantage_test&utm_content=b_demo
 ```
 
-**Every event carries `mode: sample | real`.** Never read them combined —
-a high `app_entered` count could just be people clicking the demo.
+The `?demo=1` link skips the landing page and drops people straight into
+sample mode. Comparing these two is a real experiment: it tells you whether
+the barrier is the pitch or the onboarding.
 
-Other events: `quick_wins_viewed`, `goals_set`, `plan_viewed`,
-`weekly_move_seen`, `see_the_math_opened`, `move_accepted`, `move_dismissed`,
-`tool_opened`, `back_to_vantage`, `sample_exit_to_real`.
+## Google Search — $30 over 11 days
 
-**Headline metric:** `waitlist_submitted ÷ vantage_landing`
+1. **ads.google.com** → new **Search** campaign
+2. Bidding: **Manual CPC**, max **$1.50**. Do NOT use "Maximise clicks"
+3. Match types: **exact or phrase only** — broad match will burn $30 in two days
+4. Keywords: `"personal cfo"`, `"financial advisor alternative"`,
+   `"rent vs buy calculator"`
+5. Landing URL:
 
-**Main diagnostic:** the drop between `onboarding_stage_viewed` 1→2→3→4.
-Expect a cliff at the stage asking for income and 401(k) balance. If it's
-there, the answer is to push more traffic through sample mode — not to
-rewrite the ads.
+```
+https://www.bucketswealth.com/tools.html?tool=rvb&utm_source=google&utm_medium=cpc&utm_campaign=vantage_test
+```
+
+Low volume expected — this positioning has little search demand. Defensive only.
+
+## While it runs
+
+Check daily for the first 3 days (catching a broken pixel on day 1 vs day 8
+is the difference between a valid test and a wasted $180). Then leave it
+alone. You don't have the volume to optimise your way out of noise.
 
 ---
 
-## Revised test thresholds
+# PHASE F — Read the results
 
-Ads now land directly on Vantage, which is a bigger ask than a calculator.
-Judge against these:
+## Daily
+Watch **5 Clarity recordings** of people who did NOT reach a weekly move.
+This will teach you more than every dashboard combined.
+
+## Weekly
 
 | Metric | Dead | Promising | Strong |
 |---|---|---|---|
-| Started onboarding OR sample | <25% | 35–55% | >65% |
-| Reached a weekly move (any mode) | <15% | 25–40% | >50% |
-| Completed all 4 stages (real mode) | <10% | 20–35% | >45% |
-| Waitlist rate (of those who saw a move) | 0–2 | 8–15 | 20+ |
+| Started onboarding or sample | <25% | 35–55% | >65% |
+| Reached a weekly move | <15% | 25–40% | >50% |
+| Completed all 4 stages *(real mode)* | <10% | 20–35% | >45% |
+| Waitlist emails | 0–2 | 8–15 | 20+ |
 
-**Budget:** Reddit $150 / Google $30. Google Search has very little intent
-volume for this positioning — treat it as defensive only. Reddit creative
-should lead with the restraint ("one decision a week"), not the feature list.
+**Headline metric:** `waitlist_submitted ÷ vantage_landing`
 
-**Ad landing URLs:**
+**Always filter by `mode`** (`sample` vs `real`). Combined they're meaningless —
+a high `app_entered` count could just be people clicking the demo.
 
-```
-Straight to the product:  ...bucketswealth.com/?utm_source=reddit&utm_medium=cpc&utm_campaign=vantage_test
-Skip to the demo:         ...bucketswealth.com/?demo=1&utm_source=reddit&utm_medium=cpc&utm_campaign=vantage_demo
-Calculator entry point:   ...bucketswealth.com/tools.html?tool=rvb&utm_source=google&utm_medium=cpc
-```
+**Main diagnostic:** the drop across `onboarding_stage_viewed` 1→2→3→4.
+Expect a cliff at the income/401(k) stage. If it's there, push traffic to the
+`?demo=1` link — don't rewrite the ads.
 
-That second URL is worth an A/B test on its own — it removes every barrier
-between the ad click and seeing value.
+**Second diagnostic:** `exit_survey_answered` reasons. At this sample size,
+the *reason* people decline is worth more than the count. "Privacy" means fix
+trust. "Not relevant" means fix targeting. "Too early" means the product is
+fine and the moment is wrong.
+
+## Budget escalation
+
+$180 is a smoke test — it detects signal, it doesn't measure it. If results
+come back ambiguous rather than dead, top up to ~$500 total for a real
+go/no-go read. Decide that in advance so you're not choosing under
+sunk-cost pressure.
 
 ---
 
-## Known rough edges
+# The stack
 
-- The `tools.html` re-theme was a **token swap plus a targeted pass** on the
-  charts and glows. Most of it looks right; if you spot a stray dark-theme
-  artefact, tell me where and it's a one-line fix.
+| Tool | Cost | Answers |
+|---|---|---|
+| GA4 | $0 | What happened, how many, from where |
+| Clarity | $0 | *Why* people quit — recordings + heatmaps |
+| Formspree | $0 | Who signed up + why others didn't |
+| Search Console | $0 | What people search before landing |
+| Reddit Ads | $150 | Primary traffic |
+| Google Ads | $30 | Defensive intent keywords |
+
+**Total: $180**
+
+---
+
+# Known rough edges
+
 - Tax constants in `tools.html` are still 2024 US values. Vantage's are 2026.
-  Worth aligning before you spend money driving traffic to both.
-- No data persists on refresh — by design for a prototype, but it means a
-  returning visitor starts over. Fine for the test; not fine for a product.
-- The compound calculator markup is dead code inside `tools.html`.
+  Worth aligning before driving traffic to both.
+- No data persists on refresh — by design for a prototype, but "Back to
+  Vantage" from Tools returns to the landing page, not where you left off.
+- Compound calculator markup is dead code inside `tools.html`.
+- Formspree free tier caps at 50 submissions/month.

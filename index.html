@@ -13,15 +13,14 @@
 </script>
 
 <!-- ==================== MICROSOFT CLARITY ==================== -->
-<!-- SETUP REQUIRED: replace PASTE_CLARITY_PROJECT_ID_HERE with your ID
-     from clarity.microsoft.com (Settings → Setup). Until then this is
-     inert — the script simply fails to load and nothing breaks. -->
+<!-- Session recordings + heatmaps. Project ID configured 5 Aug 2026.
+     View at clarity.microsoft.com → Vantage → Recordings. -->
 <script type="text/javascript">
   (function(c,l,a,r,i,t,y){
     c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
     t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
     y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
-  })(window, document, "clarity", "script", "PASTE_CLARITY_PROJECT_ID_HERE");
+  })(window, document, "clarity", "script", "xyd6ag4bls");
 </script>
 
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -421,6 +420,20 @@
   .wl-success{display:none;text-align:center;padding:8px 0}
   .wl-success.show{display:block;animation:fade .3s ease}
   .wl-tick{font-size:42px;color:var(--green);line-height:1;margin-bottom:10px}
+  .wl-field textarea{width:100%;padding:12px 14px;background:#F7F4EF;border:1px solid var(--line);
+    border-radius:10px;font-size:14.5px;outline:none;color:var(--ink);font-family:inherit;resize:vertical;min-height:64px}
+  .wl-field textarea:focus{border-color:var(--coral)}
+  .wl-optional{font-weight:400;text-transform:none;letter-spacing:0;color:var(--faint);font-size:11px}
+
+  /* One-tap exit survey — shown when someone declines the waitlist.
+     Non-converters are the most informative group in a test this small. */
+  .wl-survey{display:none}
+  .wl-survey.show{display:block;animation:fade .3s ease}
+  .wl-chips{display:flex;flex-direction:column;gap:9px;margin-bottom:6px}
+  .wl-chips button{width:100%;text-align:left;background:#F7F4EF;border:1px solid var(--line);
+    border-radius:11px;padding:13px 15px;font-family:inherit;font-size:14.5px;color:var(--ink);
+    cursor:pointer;transition:all .16s;font-weight:500}
+  .wl-chips button:hover{border-color:var(--coral);background:#FDF7F4}
 
   /* ==========================================================
      RESPONSIVE — collapse to a single column on small screens.
@@ -785,15 +798,35 @@
             <option value="avoiding_it">Honestly, mostly avoiding it</option>
           </select>
         </div>
+        <div class="wl-field">
+          <label for="wl-note">What would make this genuinely useful? <span class="wl-optional">optional</span></label>
+          <textarea id="wl-note" placeholder="Anything we should know…"></textarea>
+        </div>
         <button type="submit" class="wl-submit" id="wl-submit">Join the waitlist</button>
       </form>
       <button class="wl-nothanks" id="wl-nothanks">No thanks, just looking around</button>
       <div class="wl-privacy">One email when we launch. No spam, no sharing your address.</div>
     </div>
+
+    <!-- SUCCESS -->
     <div class="wl-success" id="wl-success-state">
       <div class="wl-tick">&#10003;</div>
       <h3>You're on the list.</h3>
       <p class="wl-sub" style="margin-bottom:0">We'll email you the moment there's something worth your time.</p>
+    </div>
+
+    <!-- EXIT SURVEY — shown instead of closing when someone declines -->
+    <div class="wl-survey" id="wl-survey-state">
+      <div class="wl-eyebrow">One quick question</div>
+      <h3>What stopped you?</h3>
+      <p class="wl-sub">One tap and we'll leave you alone. This genuinely helps.</p>
+      <div class="wl-chips">
+        <button onclick="submitDismiss('not_relevant')">Not relevant to my situation</button>
+        <button onclick="submitDismiss('privacy')">Don't want to share financial details</button>
+        <button onclick="submitDismiss('interesting_too_early')">Interesting, but too early</button>
+        <button onclick="submitDismiss('just_browsing')">Just browsing</button>
+      </div>
+      <button class="wl-nothanks" onclick="wlClose('survey_skipped')">Skip</button>
     </div>
   </div>
 </div>
@@ -1313,7 +1346,7 @@ function toast(msg){
    Fires once per visitor, only after they've reached real value
    (a weekly move on screen). Never shown twice.
    ============================================================ */
-const WAITLIST_ENDPOINT="PASTE_FORMSPREE_ENDPOINT_HERE";
+const WAITLIST_ENDPOINT="https://formspree.io/f/mwlepqao";
 const WL_STORAGE_KEY="bw_waitlist_seen_v2";
 let wlShownThisSession=false,wlTrigger='unknown';
 
@@ -1346,10 +1379,13 @@ function wlSubmit(e){
   errEl.style.display='none';
   subEl.disabled=true;subEl.textContent='Joining…';
 
+  const noteEl=document.getElementById('wl-note');
   const q=new URLSearchParams(window.location.search);
   const payload={
+    type:'waitlist_signup',
     email,
     situation:tlEl.value,
+    note:noteEl?noteEl.value.trim():'',
     product:'vantage',
     mode:isSampleMode?'sample':'real',
     trigger:wlTrigger,
@@ -1359,7 +1395,7 @@ function wlSubmit(e){
     submitted_at:new Date().toISOString(),
   };
 
-  track('waitlist_submitted',{trigger:wlTrigger,situation:payload.situation});
+  track('waitlist_submitted',{trigger:wlTrigger,situation:payload.situation,left_note:payload.note?'yes':'no'});
   clarityTag('waitlist','submitted');
 
   const showSuccess=()=>{
@@ -1375,12 +1411,45 @@ function wlSubmit(e){
   fetch(WAITLIST_ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json','Accept':'application/json'},body:JSON.stringify(payload)})
     .then(showSuccess).catch(err=>{console.warn('[waitlist] failed',err);showSuccess();});
 }
+/* ---------- EXIT SURVEY ----------
+   Rather than just closing on "no thanks", ask one question. People who
+   decline are the most informative group in a test this small — and the
+   only group a waitlist count tells you nothing about. */
+function showDismissSurvey(){
+  document.getElementById('wl-form-state').style.display='none';
+  document.getElementById('wl-survey-state').classList.add('show');
+  track('waitlist_dismissed',{trigger:wlTrigger,method:'no_thanks'});
+  track('exit_survey_shown');
+}
+function submitDismiss(reason){
+  track('exit_survey_answered',{reason});
+  clarityTag('exit_reason',reason);
+
+  const q=new URLSearchParams(window.location.search);
+  const payload={
+    type:'exit_survey',
+    reason,
+    product:'vantage',
+    mode:isSampleMode?'sample':'real',
+    trigger:wlTrigger,
+    utm_source:q.get('utm_source')||'direct',
+    submitted_at:new Date().toISOString(),
+  };
+  if(WAITLIST_ENDPOINT&&WAITLIST_ENDPOINT.indexOf('PASTE_')!==0){
+    fetch(WAITLIST_ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json','Accept':'application/json'},body:JSON.stringify(payload)}).catch(()=>{});
+  } else {
+    console.log('[exit survey] No endpoint configured. Payload:',payload);
+  }
+  wlClose('survey_answered');
+  toast('Thanks — that helps');
+}
+
 function wlInit(){
   const f=document.getElementById('wl-form'),c=document.getElementById('wl-close'),
         n=document.getElementById('wl-nothanks'),o=document.getElementById('wl-overlay');
   if(f)f.addEventListener('submit',wlSubmit);
   if(c)c.addEventListener('click',()=>wlClose('close_button'));
-  if(n)n.addEventListener('click',()=>wlClose('no_thanks'));
+  if(n)n.addEventListener('click',showDismissSurvey);
   if(o)o.addEventListener('click',e=>{if(e.target===o)wlClose('overlay_click');});
   document.addEventListener('keydown',e=>{
     if(e.key==='Escape'){
